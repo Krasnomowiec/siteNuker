@@ -29,6 +29,9 @@ export const LIMIT_MIN = 0;
 export const LIMIT_MAX = 60;
 export const LIMIT_STEP = 5;
 
+/** Absolute daily maximum per site (seconds) — hard block, no override */
+export const HARD_CAP_SECONDS = 3600;
+
 /** Nuclear mode time options (minutes) */
 export const NUCLEAR_TIME_OPTIONS = [
   5, 15, 30, 60, 120, 180, 240, 300,

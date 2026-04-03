@@ -22,7 +22,7 @@ export function MainList({ storage }: MainListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SiteConfig | null>(null);
   const todayUsage = getTodayUsage(storage.usage);
-  const { activeDomain, liveUsedSeconds } = useActiveDomain();
+  const { liveUsage } = useActiveDomain();
 
   async function handleSave(siteId: string, newLimit: number) {
     const site = storage.sites.find((s) => s.id === siteId);
@@ -93,7 +93,7 @@ export function MainList({ storage }: MainListProps) {
       <>
         <div className="flex-1 flex items-center justify-center px-4 py-12">
           <p className="text-text-tertiary text-body text-center">
-            No sites blocked yet.
+            {t('mainListEmpty')}
           </p>
         </div>
         <AddSiteBar existingDomains={[]} onAdd={handleAdd} />
@@ -109,9 +109,7 @@ export function MainList({ storage }: MainListProps) {
             key={site.id}
             site={site}
             usedSeconds={
-              site.domain === activeDomain
-                ? liveUsedSeconds
-                : getUsedSeconds(todayUsage, site.domain)
+              liveUsage[site.domain] ?? getUsedSeconds(todayUsage, site.domain)
             }
             isExpanded={expandedId === site.id}
             onToggleExpand={() =>

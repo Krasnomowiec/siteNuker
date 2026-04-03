@@ -1,7 +1,7 @@
 import type { StorageSchema } from '@/shared/types';
 import { readStorage, writeStorage } from '@/shared/storage';
-import { DOMAIN_ALIASES } from '@/shared/constants';
-import { extractDomain, getTodayKey, getDateKey } from '@/shared/utils';
+import { DOMAIN_ALIASES, HARD_CAP_SECONDS } from '@/shared/constants';
+import { extractDomain, findMatchingSite, getTodayKey, getDateKey } from '@/shared/utils';
 import {
   addSiteBlockRule,
   removeSiteBlockRule,
@@ -14,196 +14,207 @@ import {
 
 const FLUSH_INTERVAL_TICKS = 5;
 const DATE_CHECK_INTERVAL_TICKS = 60;
-const IDLE_THRESHOLD_SECONDS = 60;
-const ICON_SIZE = 64;
-
-const DEFAULT_ICON: Record<number, string> = {
-  16: '/icon/16.png',
-  32: '/icon/32.png',
-  48: '/icon/48.png',
-  96: '/icon/96.png',
-  128: '/icon/128.png',
-};
+/** If elapsed time since last session start exceeds this, system likely slept */
+const MAX_ELAPSED_SECONDS = FLUSH_INTERVAL_TICKS * 2 + 2;
 
 export default defineBackground(() => {
-  // --- In-memory state ---
+  // --- Per-domain session tracking ---
+
+  interface DomainSession {
+    tabIds: Set<number>;
+    sessionStart: number;
+    baseUsedSeconds: number;
+  }
+
+  /** Active sessions — one per tracked domain that has open tabs */
+  const trackedSessions = new Map<string, DomainSession>();
+  /** Reverse lookup: tabId → domain currently tracked in that tab */
+  const tabDomainMap = new Map<number, string>();
+  /** Active tab — used only for badge display */
   let activeTabId: number | null = null;
   let activeDomain: string | null = null;
-  let isWindowFocused = true;
-  let isUserActive = true;
-  let domainSessionStart = 0;
-  let baseUsedSeconds = 0;
+
   let tickCount = 0;
   let cachedStorage: StorageSchema | null = null;
   let currentDateKey = getTodayKey();
-  /**
-   * Track own writes by timestamp. Each self-write adds Date.now().
-   * When onChanged fires, if a recent self-write exists (<2s), consume it.
-   * This avoids the counter desync when events arrive out of order.
-   */
+
   const pendingSelfWrites: number[] = [];
+  function markSelfWrite(): void {
+    if (pendingSelfWrites.length >= 50) pendingSelfWrites.splice(0, 25);
+    pendingSelfWrites.push(Date.now());
+  }
+
   /** Domains blocked by site-level rules (limit exceeded) */
   const blockedDomains = new Set<string>();
-  /** Simple async lock to prevent overlapping evaluateActiveTab calls */
-  let evaluateLock: Promise<void> | null = null;
   /** Lock for storage writes to prevent lost updates */
   let writeLock: Promise<void> | null = null;
+  /** Resolves when background init is complete (storage loaded, rules reconciled) */
+  let resolveInit!: () => void;
+  const initReady: Promise<void> = new Promise((r) => {
+    resolveInit = r;
+  });
 
   // --- Helpers ---
 
-  function getElapsed(): number {
-    if (domainSessionStart === 0) return 0;
-    return Math.floor((Date.now() - domainSessionStart) / 1000);
+  function getSessionElapsed(session: DomainSession): number {
+    if (session.sessionStart === 0) return 0;
+    const raw = Math.floor((Date.now() - session.sessionStart) / 1000);
+    return Math.min(raw, MAX_ELAPSED_SECONDS);
   }
 
-  function isTracking(): boolean {
-    return (
-      activeDomain !== null &&
-      isWindowFocused &&
-      isUserActive &&
-      cachedStorage?.isEnabled === true
-    );
+  function getUsedSeconds(domain: string): number {
+    const session = trackedSessions.get(domain);
+    if (session) {
+      return session.baseUsedSeconds + getSessionElapsed(session);
+    }
+    const dayUsage = cachedStorage?.usage[currentDateKey] ?? {};
+    return dayUsage[domain]?.usedSeconds ?? 0;
   }
 
-  function pauseTracking(): void {
-    if (activeDomain && domainSessionStart > 0) {
-      baseUsedSeconds += getElapsed();
-      domainSessionStart = 0;
+  // --- Tab tracking ---
+
+  function startTrackingTab(tabId: number, domain: string): void {
+    const oldDomain = tabDomainMap.get(tabId);
+    if (oldDomain === domain) return;
+
+    tabDomainMap.set(tabId, domain);
+
+    const existing = trackedSessions.get(domain);
+    if (existing) {
+      existing.tabIds.add(tabId);
+    } else {
+      const dayUsage = cachedStorage?.usage[currentDateKey] ?? {};
+      const usedSeconds = dayUsage[domain]?.usedSeconds ?? 0;
+      trackedSessions.set(domain, {
+        tabIds: new Set([tabId]),
+        sessionStart: Date.now(),
+        baseUsedSeconds: usedSeconds,
+      });
     }
   }
 
-  function resumeTracking(): void {
-    if (
-      activeDomain &&
-      isWindowFocused &&
-      isUserActive &&
-      cachedStorage?.isEnabled
-    ) {
-      domainSessionStart = Date.now();
+  async function stopTrackingTab(tabId: number): Promise<void> {
+    const domain = tabDomainMap.get(tabId);
+    if (!domain) return;
+
+    tabDomainMap.delete(tabId);
+
+    const session = trackedSessions.get(domain);
+    if (!session) return;
+
+    session.tabIds.delete(tabId);
+    if (session.tabIds.size === 0) {
+      const usedSeconds = session.baseUsedSeconds + getSessionElapsed(session);
+      trackedSessions.delete(domain);
+      await flushDomainUsage(domain, usedSeconds);
     }
   }
 
-  // --- Hybrid countdown: icon (minutes) + badge (seconds) ---
+  async function handleTabNavigation(
+    tabId: number,
+    url: string,
+  ): Promise<void> {
+    if (!cachedStorage) return;
 
-  const iconCanvas = new OffscreenCanvas(ICON_SIZE, ICON_SIZE);
-  const iconCtx = iconCanvas.getContext('2d');
-  if (!iconCtx) {
-    console.error('[background] OffscreenCanvas 2d context unavailable');
-  }
-  let lastIconKey = '';
-  let iconActive = false;
+    const hostname = extractDomain(url, DOMAIN_ALIASES);
+    const matchedSite = hostname
+      ? findMatchingSite(hostname, cachedStorage.sites, DOMAIN_ALIASES)
+      : null;
+    const newDomain = matchedSite ? matchedSite.domain : null;
+    const oldDomain = tabDomainMap.get(tabId) ?? null;
 
-  function renderMinutesIcon(
-    minutes: number,
-    bgColor: string,
-    tabId?: number,
-  ): void {
-    if (!iconCtx) return;
-    const key = `${minutes}|${bgColor}|${tabId ?? ''}`;
-    if (key === lastIconKey) return;
-    lastIconKey = key;
+    if (newDomain === oldDomain) return;
 
-    const s = ICON_SIZE;
-    iconCtx.clearRect(0, 0, s, s);
-
-    iconCtx.beginPath();
-    iconCtx.roundRect(0, 0, s, s, 8);
-    iconCtx.fillStyle = bgColor;
-    iconCtx.fill();
-
-    const text = String(minutes);
-    const fontSize = text.length <= 2 ? 34 : 26;
-    iconCtx.fillStyle = '#ffffff';
-    iconCtx.textAlign = 'center';
-    iconCtx.textBaseline = 'middle';
-    iconCtx.font = `bold ${fontSize}px system-ui, sans-serif`;
-    iconCtx.fillText(text, s / 2, s / 2);
-
-    const imageData = iconCtx.getImageData(0, 0, s, s);
-    const args =
-      tabId != null
-        ? { imageData: imageData as unknown as ImageData, tabId }
-        : { imageData: imageData as unknown as ImageData };
-    browser.action.setIcon(args).catch(() => {});
-    iconActive = true;
-  }
-
-  function updateSecondsLabel(
-    seconds: number,
-    bgColor: string,
-    tabId?: number,
-  ): void {
-    const text = String(seconds).padStart(2, '0');
-    const tabArg = tabId != null ? { tabId } : {};
-    browser.action.setBadgeText({ text, ...tabArg }).catch(() => {});
-    browser.action
-      .setBadgeBackgroundColor({ color: bgColor, ...tabArg })
-      .catch(() => {});
-    browser.action
-      .setBadgeTextColor({ color: '#ffffff', ...tabArg })
-      .catch(() => {});
-  }
-
-  function clearCountdown(tabId?: number): void {
-    const tabArg = tabId != null ? { tabId } : {};
-    if (iconActive) {
-      browser.action
-        .setIcon({ path: DEFAULT_ICON, ...tabArg })
-        .catch(() => {});
-      iconActive = false;
-      lastIconKey = '';
+    if (oldDomain) {
+      await stopTrackingTab(tabId);
     }
-    browser.action.setBadgeText({ text: '', ...tabArg }).catch(() => {});
+
+    if (newDomain && !blockedDomains.has(newDomain)) {
+      startTrackingTab(tabId, newDomain);
+    }
+
+    if (tabId === activeTabId) {
+      activeDomain = newDomain;
+    }
   }
 
-  function updateBadge(): void {
-    if (!cachedStorage || !cachedStorage.isEnabled) {
-      clearCountdown();
+  async function scanAllTabs(): Promise<void> {
+    if (!cachedStorage) return;
+
+    let tabs;
+    try {
+      tabs = await browser.tabs.query({});
+    } catch {
       return;
     }
 
-    // Nuclear mode takes priority (global)
-    if (cachedStorage.nuclearMode) {
-      const expiresAt = new Date(cachedStorage.nuclearMode.expiresAt).getTime();
-      const remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
-      if (remaining <= 0) {
-        clearCountdown();
-        handleNuclearExpired().catch(() => {});
-        return;
+    // Build map of domains → tabIds currently in browser
+    const domainsInTabs = new Map<string, Set<number>>();
+    for (const tab of tabs) {
+      if (!tab.id || !tab.url) continue;
+      const hostname = extractDomain(tab.url, DOMAIN_ALIASES);
+      const matchedSite = hostname
+        ? findMatchingSite(hostname, cachedStorage.sites, DOMAIN_ALIASES)
+        : null;
+      if (matchedSite && !blockedDomains.has(matchedSite.domain)) {
+        const domain = matchedSite.domain;
+        if (!domainsInTabs.has(domain)) domainsInTabs.set(domain, new Set());
+        domainsInTabs.get(domain)!.add(tab.id);
       }
-      const mins = Math.floor(remaining / 60);
-      const secs = remaining % 60;
-      renderMinutesIcon(mins, '#fe554a');
-      updateSecondsLabel(secs, '#fe554a');
+    }
+
+    // Remove tabs no longer present
+    for (const [tabId, domain] of tabDomainMap) {
+      const tabSet = domainsInTabs.get(domain);
+      if (!tabSet || !tabSet.has(tabId)) {
+        await stopTrackingTab(tabId);
+      }
+    }
+
+    // Add new tabs
+    for (const [domain, tabIds] of domainsInTabs) {
+      for (const tabId of tabIds) {
+        startTrackingTab(tabId, domain);
+      }
+    }
+
+    // Update active tab for badge
+    await updateActiveTabInfo();
+  }
+
+  async function updateActiveTabInfo(): Promise<void> {
+    let tabs;
+    try {
+      tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    } catch {
+      return;
+    }
+    const tab = tabs[0];
+    if (!tab?.id || !tab.url) {
+      activeTabId = null;
+      activeDomain = null;
       return;
     }
 
-    // Normal per-domain countdown
-    if (!activeDomain || activeTabId == null) {
-      clearCountdown();
-      return;
+    activeTabId = tab.id;
+    const hostname = extractDomain(tab.url, DOMAIN_ALIASES);
+    const matchedSite =
+      hostname && cachedStorage
+        ? findMatchingSite(hostname, cachedStorage.sites, DOMAIN_ALIASES)
+        : null;
+    activeDomain = matchedSite ? matchedSite.domain : null;
+  }
+
+  // --- Nuclear expiry check (called every tick) ---
+
+  function checkNuclearExpiry(): void {
+    if (!cachedStorage?.isEnabled || !cachedStorage.nuclearMode) return;
+    const expiresAt = new Date(
+      cachedStorage.nuclearMode.expiresAt,
+    ).getTime();
+    if (isNaN(expiresAt) || Math.ceil((expiresAt - Date.now()) / 1000) <= 0) {
+      handleNuclearExpired().catch(() => {});
     }
-
-    const site = cachedStorage.sites.find((s) => s.domain === activeDomain);
-    if (!site) {
-      clearCountdown(activeTabId);
-      return;
-    }
-
-    const limitSeconds = site.dailyLimitMinutes * 60;
-    const currentUsed = baseUsedSeconds + getElapsed();
-    const remaining = Math.max(0, limitSeconds - currentUsed);
-
-    if (remaining <= 0) {
-      renderMinutesIcon(0, '#fe554a', activeTabId);
-      updateSecondsLabel(0, '#fe554a', activeTabId);
-      return;
-    }
-
-    const mins = Math.floor(remaining / 60);
-    const secs = remaining % 60;
-    renderMinutesIcon(mins, '#ffb874', activeTabId);
-    updateSecondsLabel(secs, '#ffb874', activeTabId);
   }
 
   // --- Storage flush ---
@@ -222,103 +233,105 @@ export default defineBackground(() => {
     }
   }
 
-  async function flushUsage(): Promise<void> {
-    return withWriteLock(flushUsageInner);
+  async function flushAllUsage(): Promise<void> {
+    return withWriteLock(flushAllUsageInner);
   }
 
-  async function flushUsageInner(): Promise<void> {
-    if (!activeDomain || !cachedStorage) return;
+  async function flushAllUsageInner(): Promise<void> {
+    if (!cachedStorage || trackedSessions.size === 0) return;
 
-    const currentUsed = baseUsedSeconds + getElapsed();
     const dateKey = currentDateKey;
     const usage = { ...cachedStorage.usage };
     const dayUsage = { ...(usage[dateKey] ?? {}) };
-    const domainUsage = dayUsage[activeDomain] ?? {
-      usedSeconds: 0,
-      blockedAttempts: 0,
-      limitChanges: [],
-    };
+    let changed = false;
 
-    dayUsage[activeDomain] = { ...domainUsage, usedSeconds: currentUsed };
-    usage[dateKey] = dayUsage;
+    for (const [domain, session] of trackedSessions) {
+      const currentUsed =
+        session.baseUsedSeconds + getSessionElapsed(session);
+      const domainUsage = dayUsage[domain] ?? {
+        usedSeconds: 0,
+        blockedAttempts: 0,
+        limitChanges: [],
+      };
 
-    pendingSelfWrites.push(Date.now());
-    await writeStorage({ usage });
-    cachedStorage = { ...cachedStorage, usage };
-
-    baseUsedSeconds = currentUsed;
-    if (domainSessionStart > 0) {
-      domainSessionStart = Date.now();
-    }
-  }
-
-  // --- Tab evaluation ---
-
-  async function evaluateActiveTab(): Promise<void> {
-    // Serialize concurrent calls to prevent state corruption
-    while (evaluateLock) await evaluateLock;
-    let unlock: () => void;
-    evaluateLock = new Promise<void>((resolve) => {
-      unlock = resolve;
-    });
-    try {
-      await evaluateActiveTabInner();
-    } finally {
-      evaluateLock = null;
-      unlock!();
-    }
-  }
-
-  async function evaluateActiveTabInner(): Promise<void> {
-    if (!cachedStorage) return;
-
-    let tabs;
-    try {
-      tabs = await browser.tabs.query({ active: true, currentWindow: true });
-    } catch {
-      return;
-    }
-
-    const tab = tabs[0];
-    if (!tab?.id || !tab.url) {
-      if (activeDomain) {
-        await flushUsage();
-        activeDomain = null;
-        activeTabId = null;
+      if (currentUsed !== domainUsage.usedSeconds) {
+        dayUsage[domain] = { ...domainUsage, usedSeconds: currentUsed };
+        changed = true;
       }
-      clearCountdown();
-      return;
+
+      session.baseUsedSeconds = currentUsed;
+      session.sessionStart = Date.now();
     }
 
-    const domain = extractDomain(tab.url, DOMAIN_ALIASES);
-    const matchedSite = domain
-      ? cachedStorage.sites.find((s) => s.domain === domain)
-      : null;
-    const newDomain = matchedSite ? matchedSite.domain : null;
-
-    if (newDomain === activeDomain && tab.id === activeTabId) {
-      return;
+    if (changed) {
+      usage[dateKey] = dayUsage;
+      markSelfWrite();
+      await writeStorage({ usage });
+      cachedStorage = { ...cachedStorage, usage };
     }
+  }
 
-    if (activeDomain) {
-      await flushUsage();
-    }
-
-    activeTabId = tab.id;
-    activeDomain = newDomain;
-
-    if (activeDomain) {
+  async function flushDomainUsage(
+    domain: string,
+    usedSeconds: number,
+  ): Promise<void> {
+    return withWriteLock(async () => {
+      if (!cachedStorage) return;
       const dateKey = currentDateKey;
-      const dayUsage = cachedStorage.usage[dateKey] ?? {};
-      const domainUsage = dayUsage[activeDomain];
-      baseUsedSeconds = domainUsage?.usedSeconds ?? 0;
-      domainSessionStart = isWindowFocused && isUserActive ? Date.now() : 0;
-    } else {
-      baseUsedSeconds = 0;
-      domainSessionStart = 0;
+      const usage = { ...cachedStorage.usage };
+      const dayUsage = { ...(usage[dateKey] ?? {}) };
+      const domainUsage = dayUsage[domain] ?? {
+        usedSeconds: 0,
+        blockedAttempts: 0,
+        limitChanges: [],
+      };
+      if (usedSeconds <= domainUsage.usedSeconds) return;
+      dayUsage[domain] = { ...domainUsage, usedSeconds };
+      usage[dateKey] = dayUsage;
+      markSelfWrite();
+      await writeStorage({ usage });
+      cachedStorage = { ...cachedStorage, usage };
+    });
+  }
+
+  // --- Blocking check ---
+
+  async function checkAndBlockAll(): Promise<void> {
+    if (!cachedStorage || cachedStorage.nuclearMode) return;
+
+    const toBlock: Array<{ domain: string; usedSeconds: number }> = [];
+
+    for (const [domain, session] of trackedSessions) {
+      const site = cachedStorage.sites.find((s) => s.domain === domain);
+      if (!site) continue;
+
+      const currentUsed =
+        session.baseUsedSeconds + getSessionElapsed(session);
+      if (isDomainBlocked(site, currentUsed) && !blockedDomains.has(domain)) {
+        toBlock.push({ domain, usedSeconds: currentUsed });
+      }
     }
 
-    updateBadge();
+    for (const { domain, usedSeconds } of toBlock) {
+      const site = cachedStorage.sites.find((s) => s.domain === domain);
+      if (!site) continue;
+
+      await flushDomainUsage(domain, usedSeconds);
+      await addSiteBlockRule(site);
+      blockedDomains.add(domain);
+      await incrementBlockedAttempts(domain);
+      await notifyAllTabsForDomain(domain, 'showBlockOverlay');
+
+      // Remove all tabs for this domain from tracking
+      const session = trackedSessions.get(domain);
+      if (session) {
+        for (const tabId of session.tabIds) {
+          tabDomainMap.delete(tabId);
+        }
+        trackedSessions.delete(domain);
+      }
+
+    }
   }
 
   // --- Nuclear expiry ---
@@ -326,13 +339,12 @@ export default defineBackground(() => {
   async function handleNuclearExpired(): Promise<void> {
     return withWriteLock(async () => {
       const sites = cachedStorage?.sites ?? [];
-      pendingSelfWrites.push(Date.now());
+      markSelfWrite();
       await writeStorage({ nuclearMode: null });
       if (cachedStorage) {
         cachedStorage = { ...cachedStorage, nuclearMode: null };
       }
       await removeNuclearRules(sites);
-      // Re-add site-level rules for domains still over limit
       if (cachedStorage) {
         await reconcileRules(cachedStorage);
         rebuildBlockedDomainsSet();
@@ -345,9 +357,8 @@ export default defineBackground(() => {
   async function checkDateRollover(): Promise<void> {
     const newKey = getTodayKey();
     if (newKey !== currentDateKey) {
-      if (activeDomain) {
-        await flushUsage();
-      }
+      // Flush all tracked domains before rolling over
+      await flushAllUsage();
 
       // Archive previous day's usage to history (30-day retention)
       if (cachedStorage) {
@@ -358,7 +369,6 @@ export default defineBackground(() => {
           const history = { ...cachedStorage.history };
           history[oldDateKey] = oldDayUsage;
 
-          // Prune entries older than 30 days
           const cutoff = new Date();
           cutoff.setDate(cutoff.getDate() - 30);
           const cutoffKey = getDateKey(cutoff);
@@ -371,23 +381,28 @@ export default defineBackground(() => {
           const usage = { ...cachedStorage.usage };
           delete usage[oldDateKey];
 
-          pendingSelfWrites.push(Date.now());
+          markSelfWrite();
           await writeStorage({ history, usage });
           cachedStorage = { ...cachedStorage, history, usage };
         }
       }
 
       currentDateKey = newKey;
-      baseUsedSeconds = 0;
-      if (domainSessionStart > 0) {
-        domainSessionStart = Date.now();
+
+      // Reset all sessions for the new day
+      for (const [, session] of trackedSessions) {
+        session.baseUsedSeconds = 0;
+        session.sessionStart = Date.now();
       }
+
       // Remove all site block rules (new day = fresh limits)
       if (cachedStorage && !cachedStorage.nuclearMode) {
         for (const site of cachedStorage.sites) {
           await removeSiteBlockRule(site);
         }
         blockedDomains.clear();
+        // Re-scan tabs to start tracking previously blocked domains
+        await scanAllTabs();
       }
     }
   }
@@ -403,7 +418,10 @@ export default defineBackground(() => {
       for (const tab of tabs) {
         if (!tab.id || !tab.url) continue;
         const tabDomain = extractDomain(tab.url, DOMAIN_ALIASES);
-        if (tabDomain === domain) {
+        if (
+          tabDomain === domain ||
+          (tabDomain && tabDomain.endsWith('.' + domain))
+        ) {
           browser.tabs
             .sendMessage(tab.id, { type: messageType, domain })
             .catch(() => {});
@@ -417,57 +435,28 @@ export default defineBackground(() => {
   // --- Blocked attempts tracking ---
 
   async function incrementBlockedAttempts(domain: string): Promise<void> {
-    if (!cachedStorage) return;
-    const dateKey = currentDateKey;
-    const usage = { ...cachedStorage.usage };
-    const dayUsage = { ...(usage[dateKey] ?? {}) };
-    const domainUsage = dayUsage[domain] ?? {
-      usedSeconds: 0,
-      blockedAttempts: 0,
-      limitChanges: [],
-    };
-    dayUsage[domain] = {
-      ...domainUsage,
-      blockedAttempts: domainUsage.blockedAttempts + 1,
-    };
-    usage[dateKey] = dayUsage;
-    pendingSelfWrites.push(Date.now());
-    await writeStorage({ usage });
-    cachedStorage = { ...cachedStorage, usage };
+    return withWriteLock(async () => {
+      if (!cachedStorage) return;
+      const dateKey = currentDateKey;
+      const usage = { ...cachedStorage.usage };
+      const dayUsage = { ...(usage[dateKey] ?? {}) };
+      const domainUsage = dayUsage[domain] ?? {
+        usedSeconds: 0,
+        blockedAttempts: 0,
+        limitChanges: [],
+      };
+      dayUsage[domain] = {
+        ...domainUsage,
+        blockedAttempts: domainUsage.blockedAttempts + 1,
+      };
+      usage[dateKey] = dayUsage;
+      markSelfWrite();
+      await writeStorage({ usage });
+      cachedStorage = { ...cachedStorage, usage };
+    });
   }
 
-  // --- Blocking check ---
-
-  async function checkAndBlock(): Promise<void> {
-    if (!cachedStorage || !activeDomain || !activeTabId) return;
-    if (cachedStorage.nuclearMode) return;
-
-    const site = cachedStorage.sites.find((s) => s.domain === activeDomain);
-    if (!site) return;
-
-    const currentUsed = baseUsedSeconds + getElapsed();
-
-    if (
-      isDomainBlocked(site, currentUsed) &&
-      !blockedDomains.has(site.domain)
-    ) {
-      await flushUsage();
-      await addSiteBlockRule(site);
-      blockedDomains.add(site.domain);
-
-      // Record the first blocked attempt for stats
-      await incrementBlockedAttempts(site.domain);
-
-      await notifyAllTabsForDomain(site.domain, 'showBlockOverlay');
-
-      activeDomain = null;
-      baseUsedSeconds = 0;
-      domainSessionStart = 0;
-      clearCountdown();
-    }
-  }
-
-  // --- Rebuild blockedDomains from storage state (not rules) ---
+  // --- Rebuild blockedDomains from storage state ---
 
   function rebuildBlockedDomainsSet(): void {
     blockedDomains.clear();
@@ -482,19 +471,20 @@ export default defineBackground(() => {
     }
   }
 
-  // --- Main tick (H2: all async calls wrapped with .catch) ---
+  // --- Main tick ---
 
   setInterval(() => {
+    if (!cachedStorage) return;
     tickCount++;
 
-    updateBadge();
+    checkNuclearExpiry();
 
-    if (isTracking()) {
-      checkAndBlock().catch(() => {});
+    if (trackedSessions.size > 0) {
+      checkAndBlockAll().catch(() => {});
+    }
 
-      if (tickCount % FLUSH_INTERVAL_TICKS === 0) {
-        flushUsage().catch(() => {});
-      }
+    if (tickCount % FLUSH_INTERVAL_TICKS === 0) {
+      flushAllUsage().catch(() => {});
     }
 
     if (tickCount % DATE_CHECK_INTERVAL_TICKS === 0) {
@@ -504,40 +494,42 @@ export default defineBackground(() => {
 
   // --- Event listeners ---
 
-  browser.tabs.onActivated.addListener(() => {
-    evaluateActiveTab().catch(() => {});
+  browser.tabs.onActivated.addListener(({ tabId }) => {
+    activeTabId = tabId;
+    activeDomain = tabDomainMap.get(tabId) ?? null;
+
+    // If tab not in our map, query its URL (might be non-tracked)
+    if (activeDomain == null) {
+      browser.tabs
+        .get(tabId)
+        .then((tab) => {
+          if (!tab.url || !cachedStorage) return;
+          const hostname = extractDomain(tab.url, DOMAIN_ALIASES);
+          const matchedSite = hostname
+            ? findMatchingSite(
+                hostname,
+                cachedStorage.sites,
+                DOMAIN_ALIASES,
+              )
+            : null;
+          activeDomain = matchedSite ? matchedSite.domain : null;
+            })
+        .catch(() => {});
+    }
   });
 
   browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
-    if (changeInfo.url && tabId === activeTabId) {
-      evaluateActiveTab().catch(() => {});
+    if (changeInfo.url) {
+      handleTabNavigation(tabId, changeInfo.url).catch(() => {});
     }
   });
 
-  browser.windows.onFocusChanged.addListener((windowId) => {
-    if (windowId === browser.windows.WINDOW_ID_NONE) {
-      isWindowFocused = false;
-      if (activeDomain) flushUsage().catch(() => {});
-      pauseTracking();
-      updateBadge();
-    } else {
-      isWindowFocused = true;
-      resumeTracking();
-      evaluateActiveTab().catch(() => {});
+  browser.tabs.onRemoved.addListener((tabId) => {
+    stopTrackingTab(tabId).catch(() => {});
+    if (tabId === activeTabId) {
+      activeTabId = null;
+      activeDomain = null;
     }
-  });
-
-  browser.idle.setDetectionInterval(IDLE_THRESHOLD_SECONDS);
-  browser.idle.onStateChanged.addListener((state) => {
-    if (state === 'active') {
-      isUserActive = true;
-      resumeTracking();
-    } else {
-      isUserActive = false;
-      if (activeDomain) flushUsage().catch(() => {});
-      pauseTracking();
-    }
-    updateBadge();
   });
 
   // --- Storage change sub-handlers ---
@@ -551,6 +543,18 @@ export default defineBackground(() => {
         await removeSiteBlockRule(prevSite);
         blockedDomains.delete(prevSite.domain);
         await notifyAllTabsForDomain(prevSite.domain, 'removeBlockOverlay');
+
+        // Remove from tracking
+        const session = trackedSessions.get(prevSite.domain);
+        if (session) {
+          for (const tabId of session.tabIds) {
+            tabDomainMap.delete(tabId);
+          }
+          trackedSessions.delete(prevSite.domain);
+        }
+        if (activeDomain === prevSite.domain) {
+          activeDomain = null;
+        }
       }
     }
   }
@@ -563,16 +567,16 @@ export default defineBackground(() => {
       if (!prevSite || site.dailyLimitMinutes === prevSite.dailyLimitMinutes)
         continue;
 
-      const used =
-        cachedStorage!.usage[currentDateKey]?.[site.domain]?.usedSeconds ?? 0;
+      const used = getUsedSeconds(site.domain);
 
       if (
         site.dailyLimitMinutes > prevSite.dailyLimitMinutes &&
         blockedDomains.has(site.domain)
       ) {
-        if (used < site.dailyLimitMinutes * 60) {
+        if (used < site.dailyLimitMinutes * 60 && used < HARD_CAP_SECONDS) {
           await removeSiteBlockRule(site);
           blockedDomains.delete(site.domain);
+          await notifyAllTabsForDomain(site.domain, 'removeBlockOverlay');
         }
       } else if (
         site.dailyLimitMinutes < prevSite.dailyLimitMinutes &&
@@ -582,11 +586,14 @@ export default defineBackground(() => {
           await addSiteBlockRule(site);
           blockedDomains.add(site.domain);
           await notifyAllTabsForDomain(site.domain, 'showBlockOverlay');
-          if (activeDomain === site.domain) {
-            activeDomain = null;
-            baseUsedSeconds = 0;
-            domainSessionStart = 0;
-            clearCountdown();
+
+          // Remove from tracking
+          const session = trackedSessions.get(site.domain);
+          if (session) {
+            for (const tabId of session.tabIds) {
+              tabDomainMap.delete(tabId);
+            }
+            trackedSessions.delete(site.domain);
           }
         }
       }
@@ -597,6 +604,10 @@ export default defineBackground(() => {
     await addNuclearRules(cachedStorage!.sites);
     rebuildBlockedDomainsSet();
 
+    // Clear all tracking — everything is blocked
+    tabDomainMap.clear();
+    trackedSessions.clear();
+
     const nuclearDomains = new Set(
       cachedStorage!.sites.map((s) => s.domain),
     );
@@ -605,7 +616,20 @@ export default defineBackground(() => {
       for (const tab of tabs) {
         if (!tab.id || !tab.url) continue;
         const tabDomain = extractDomain(tab.url, DOMAIN_ALIASES);
-        if (tabDomain && nuclearDomains.has(tabDomain)) {
+        let matchesNuclear = false;
+        if (tabDomain) {
+          if (nuclearDomains.has(tabDomain)) {
+            matchesNuclear = true;
+          } else {
+            for (const d of nuclearDomains) {
+              if (tabDomain.endsWith('.' + d)) {
+                matchesNuclear = true;
+                break;
+              }
+            }
+          }
+        }
+        if (matchesNuclear) {
           browser.tabs
             .sendMessage(tab.id, {
               type: 'showBlockOverlay',
@@ -622,13 +646,16 @@ export default defineBackground(() => {
   async function handleExtensionDisabled(): Promise<void> {
     await removeAllRules();
     blockedDomains.clear();
-    pauseTracking();
-    clearCountdown();
+
+    // Clear all tracking
+    tabDomainMap.clear();
+    trackedSessions.clear();
   }
 
   async function handleExtensionEnabled(): Promise<void> {
     await reconcileRules(cachedStorage!);
     rebuildBlockedDomainsSet();
+    await scanAllTabs();
   }
 
   // --- Storage change listener ---
@@ -636,14 +663,16 @@ export default defineBackground(() => {
   browser.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'local') return;
 
-    // Consume a recent self-write (within 2s) if one exists
     const now = Date.now();
     const recentIndex = pendingSelfWrites.findIndex((ts) => now - ts < 2000);
     if (recentIndex !== -1) {
       pendingSelfWrites.splice(recentIndex, 1);
       return;
     }
-    while (pendingSelfWrites.length > 0 && now - pendingSelfWrites[0] > 5000) {
+    while (
+      pendingSelfWrites.length > 0 &&
+      now - pendingSelfWrites[0]! > 5000
+    ) {
       pendingSelfWrites.shift();
     }
 
@@ -674,34 +703,59 @@ export default defineBackground(() => {
       await handleExtensionEnabled();
     }
 
-    await evaluateActiveTab();
+    // Re-scan tabs in case sites were added/removed
+    await scanAllTabs();
   });
 
-  // --- Messaging: expose live state to popup AND block page ---
+  // --- Messaging ---
 
   browser.runtime.onMessage.addListener((message, sender) => {
     if (message?.type === 'getActiveState') {
-      const usedSeconds = activeDomain ? baseUsedSeconds + getElapsed() : 0;
-      return Promise.resolve({ activeDomain, usedSeconds });
+      const trackedUsage: Record<string, number> = {};
+      for (const [domain, session] of trackedSessions) {
+        trackedUsage[domain] =
+          session.baseUsedSeconds + getSessionElapsed(session);
+      }
+      return Promise.resolve({ activeDomain, trackedUsage });
     }
 
-    // Content script reports a blocked visit attempt (repeat navigation)
     if (message?.type === 'recordBlockedAttempt' && sender?.tab?.url) {
-      const domain = extractDomain(sender.tab.url, DOMAIN_ALIASES);
-      if (domain && cachedStorage) {
-        incrementBlockedAttempts(domain).catch(() => {});
+      const hostname = extractDomain(sender.tab.url, DOMAIN_ALIASES);
+      const matchedSite =
+        hostname && cachedStorage
+          ? findMatchingSite(
+              hostname,
+              cachedStorage.sites,
+              DOMAIN_ALIASES,
+            )
+          : null;
+      if (matchedSite) {
+        incrementBlockedAttempts(matchedSite.domain).catch(() => {});
       }
       return Promise.resolve({ ok: true });
     }
 
-    // Content script asks if current domain is blocked
     if (message?.type === 'isCurrentSiteBlocked' && sender?.tab?.url) {
-      const domain = extractDomain(sender.tab.url, DOMAIN_ALIASES);
-      const blocked = domain ? blockedDomains.has(domain) : false;
-      const nuclear =
-        cachedStorage?.nuclearMode != null &&
-        new Date(cachedStorage.nuclearMode.expiresAt).getTime() > Date.now();
-      return Promise.resolve({ blocked: blocked || nuclear });
+      const tabUrl = sender.tab.url;
+      return initReady.then(() => {
+        const hostname = extractDomain(tabUrl, DOMAIN_ALIASES);
+        const matchedSite =
+          hostname && cachedStorage
+            ? findMatchingSite(
+                hostname,
+                cachedStorage.sites,
+                DOMAIN_ALIASES,
+              )
+            : null;
+        const blocked = matchedSite
+          ? blockedDomains.has(matchedSite.domain)
+          : false;
+        const nuclear =
+          cachedStorage?.nuclearMode != null &&
+          new Date(cachedStorage.nuclearMode.expiresAt).getTime() >
+            Date.now();
+        return { blocked: blocked || nuclear };
+      });
     }
 
     return undefined;
@@ -711,26 +765,22 @@ export default defineBackground(() => {
 
   (async () => {
     cachedStorage = await readStorage();
-    clearCountdown();
 
     // Clear expired nuclear mode before reconciling rules
     if (cachedStorage.nuclearMode) {
       const expiresAt = new Date(
         cachedStorage.nuclearMode.expiresAt,
       ).getTime();
-      if (expiresAt <= Date.now()) {
-        pendingSelfWrites.push(Date.now());
+      if (isNaN(expiresAt) || expiresAt <= Date.now()) {
+        markSelfWrite();
         await writeStorage({ nuclearMode: null });
         cachedStorage = { ...cachedStorage, nuclearMode: null };
       }
     }
 
-    // Reconcile blocking rules with current storage state
     await reconcileRules(cachedStorage);
-
-    // Populate blockedDomains from storage state after reconcile
     rebuildBlockedDomainsSet();
-
-    await evaluateActiveTab();
+    await scanAllTabs();
+    resolveInit();
   })();
 });

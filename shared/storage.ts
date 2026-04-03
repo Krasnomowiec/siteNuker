@@ -89,6 +89,10 @@ export async function readStorage(): Promise<StorageSchema> {
 export async function writeStorage(
   partial: Partial<StorageSchema>,
 ): Promise<void> {
-  await browser.storage.local.set(partial);
+  try {
+    await browser.storage.local.set(partial);
+  } catch (error) {
+    console.error('[storage] Write failed (quota exceeded?):', error);
+  }
 }
 

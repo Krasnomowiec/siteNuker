@@ -80,12 +80,26 @@ export function extractDomain(
   return str.toLowerCase();
 }
 
-/** Format remaining seconds for the extension badge (short enough to fit) */
-export function formatBadgeText(totalSeconds: number): string {
-  if (totalSeconds <= 0) return '';
-  const minutes = Math.floor(totalSeconds / 60);
-  if (minutes >= 60) return String(minutes);
-  return formatTimeCountdown(totalSeconds);
+/**
+ * Match a hostname against tracked sites using suffix matching.
+ * Handles subdomains: "music.youtube.com" matches site "youtube.com".
+ * Returns the matching SiteConfig or undefined.
+ */
+export function findMatchingSite<T extends { domain: string }>(
+  hostname: string,
+  sites: T[],
+  aliases: Record<string, string>,
+): T | undefined {
+  // Normalize: strip www, resolve aliases
+  let normalized = hostname.replace(/^www\./, '').toLowerCase();
+  normalized = aliases[normalized] ?? normalized;
+
+  // Exact match first
+  const exact = sites.find((s) => s.domain === normalized);
+  if (exact) return exact;
+
+  // Suffix match: "music.youtube.com" ends with ".youtube.com"
+  return sites.find((s) => normalized.endsWith('.' + s.domain));
 }
 
 /** Short format for chart labels: "42m", "1h 42m" */

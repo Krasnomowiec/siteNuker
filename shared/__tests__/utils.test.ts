@@ -6,7 +6,6 @@ import {
   formatTimeCompact,
   formatTimeCountdown,
   extractDomain,
-  formatBadgeText,
   formatMinutesShort,
 } from '../utils';
 
@@ -147,23 +146,6 @@ describe('extractDomain', () => {
 
   it('lowercases the result', () => {
     expect(extractDomain('YouTube.COM', aliases)).toBe('youtube.com');
-  });
-});
-
-describe('formatBadgeText', () => {
-  it('returns empty string for 0 or negative', () => {
-    expect(formatBadgeText(0)).toBe('');
-    expect(formatBadgeText(-5)).toBe('');
-  });
-
-  it('returns countdown format for < 60 minutes', () => {
-    expect(formatBadgeText(90)).toBe('1:30');
-    expect(formatBadgeText(300)).toBe('5:00');
-  });
-
-  it('returns minutes only for >= 60 minutes', () => {
-    expect(formatBadgeText(3600)).toBe('60');
-    expect(formatBadgeText(7200)).toBe('120');
   });
 });
 

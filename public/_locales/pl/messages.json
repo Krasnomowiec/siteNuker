@@ -42,6 +42,12 @@
   "siteRowLimitExhausted": {
     "message": "Limit wyczerpany. Reset o\u00A0północy."
   },
+  "siteRowSoftBlocked": {
+    "message": "Zablokowane"
+  },
+  "siteRowIncreaseLimit": {
+    "message": "Zwiększ limit, aby kontynuować"
+  },
 
   "deleteConfirmTitle": {
     "message": "Usunąć $domain$ z\u00A0listy blokowania?",
@@ -130,6 +136,12 @@
   "nuclearCountdownActive": {
     "message": "Twoja lista stron właśnie zniknęła z\u00A0mapy."
   },
+  "nuclearCountdownRemaining": {
+    "message": "Pozostało: $time$",
+    "placeholders": {
+      "time": { "content": "$1" }
+    }
+  },
   "nuclearCountdownDone": {
     "message": "Gotowe"
   },
@@ -173,5 +185,9 @@
   "dayThu": { "message": "Cz" },
   "dayFri": { "message": "Pt" },
   "daySat": { "message": "So" },
-  "daySun": { "message": "Nd" }
+  "daySun": { "message": "Nd" },
+
+  "mainListEmpty": {
+    "message": "Nie masz jeszcze żadnych stron."
+  }
 }

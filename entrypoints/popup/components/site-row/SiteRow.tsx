@@ -1,5 +1,6 @@
 import type { SiteConfig } from '@/shared/types';
-import { LIMIT_MAX } from '@/shared/constants';
+import { HARD_CAP_SECONDS } from '@/shared/constants';
+
 import { CollapsedCard } from './CollapsedCard';
 import { ExpandedCard } from './ExpandedCard';
 import { LockedCard } from './LockedCard';
@@ -21,10 +22,25 @@ export function SiteRow({
   onSave,
   onDelete,
 }: SiteRowProps) {
-  const isLocked = usedSeconds >= LIMIT_MAX * 60;
+  const isHardLocked = usedSeconds >= HARD_CAP_SECONDS;
+  const isSoftLocked =
+    !isHardLocked && usedSeconds >= site.dailyLimitMinutes * 60;
 
-  if (isLocked) {
+  if (isHardLocked) {
     return <LockedCard site={site} />;
+  }
+
+  if (isSoftLocked) {
+    return (
+      <ExpandedCard
+        site={site}
+        usedSeconds={usedSeconds}
+        onCollapse={() => {}}
+        onSave={(newLimit) => onSave(site.id, newLimit)}
+        onDelete={() => onDelete(site.id)}
+        isSoftLocked
+      />
+    );
   }
 
   if (isExpanded) {

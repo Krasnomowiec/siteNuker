@@ -2,35 +2,41 @@ import { useState, useEffect, useRef } from 'react';
 
 interface ActiveState {
   activeDomain: string | null;
-  usedSeconds: number;
+  trackedUsage: Record<string, number>;
 }
 
 async function fetchActiveState(): Promise<ActiveState> {
   try {
     return await browser.runtime.sendMessage({ type: 'getActiveState' });
   } catch {
-    return { activeDomain: null, usedSeconds: 0 };
+    return { activeDomain: null, trackedUsage: {} };
   }
 }
 
 export function useActiveDomain() {
   const [activeDomain, setActiveDomain] = useState<string | null>(null);
-  const [liveUsedSeconds, setLiveUsedSeconds] = useState(0);
-  const domainRef = useRef<string | null>(null);
+  const [liveUsage, setLiveUsage] = useState<Record<string, number>>({});
+  const domainsRef = useRef<string[]>([]);
 
   useEffect(() => {
     async function sync() {
       const state = await fetchActiveState();
-      domainRef.current = state.activeDomain;
+      domainsRef.current = Object.keys(state.trackedUsage);
       setActiveDomain(state.activeDomain);
-      setLiveUsedSeconds(state.usedSeconds);
+      setLiveUsage(state.trackedUsage);
     }
 
     sync();
 
     const intervalId = setInterval(() => {
-      if (domainRef.current) {
-        setLiveUsedSeconds((prev) => prev + 1);
+      if (domainsRef.current.length > 0) {
+        setLiveUsage((prev) => {
+          const next: Record<string, number> = {};
+          for (const domain of domainsRef.current) {
+            next[domain] = (prev[domain] ?? 0) + 1;
+          }
+          return next;
+        });
       }
     }, 1000);
 
@@ -46,5 +52,5 @@ export function useActiveDomain() {
     };
   }, []);
 
-  return { activeDomain, liveUsedSeconds };
+  return { activeDomain, liveUsage };
 }

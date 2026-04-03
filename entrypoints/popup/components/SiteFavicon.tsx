@@ -14,6 +14,8 @@ export function SiteFavicon({ domain, size = 'md' }: SiteFaviconProps) {
   const [failed, setFailed] = useState(false);
   const { box, text } = SIZE_MAP[size];
 
+  // Privacy note: favicons are fetched from Google's service, which means
+  // Google can see which domains the user tracks. Accepted trade-off for UX.
   if (failed) {
     return (
       <div

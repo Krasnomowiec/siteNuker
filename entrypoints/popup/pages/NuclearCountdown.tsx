@@ -104,7 +104,7 @@ export function NuclearCountdown({
             role="timer"
             aria-live={remainingSeconds <= 60 ? 'assertive' : 'polite'}
             aria-atomic="true"
-            aria-label={`Pozostało: ${formatTimeCountdown(remainingSeconds)}`}
+            aria-label={t('nuclearCountdownRemaining', formatTimeCountdown(remainingSeconds))}
           >
             {/* Background ring */}
             <circle

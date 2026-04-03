@@ -42,6 +42,12 @@
   "siteRowLimitExhausted": {
     "message": "Limit exhausted. Resets at midnight."
   },
+  "siteRowSoftBlocked": {
+    "message": "Blocked"
+  },
+  "siteRowIncreaseLimit": {
+    "message": "Increase limit to continue"
+  },
 
   "deleteConfirmTitle": {
     "message": "Remove $domain$ from block list?",
@@ -130,6 +136,12 @@
   "nuclearCountdownActive": {
     "message": "Your site list just vanished from the map."
   },
+  "nuclearCountdownRemaining": {
+    "message": "Remaining: $time$",
+    "placeholders": {
+      "time": { "content": "$1" }
+    }
+  },
   "nuclearCountdownDone": {
     "message": "Done"
   },
@@ -173,5 +185,9 @@
   "dayThu": { "message": "Thu" },
   "dayFri": { "message": "Fri" },
   "daySat": { "message": "Sat" },
-  "daySun": { "message": "Sun" }
+  "daySun": { "message": "Sun" },
+
+  "mainListEmpty": {
+    "message": "No sites blocked yet."
+  }
 }

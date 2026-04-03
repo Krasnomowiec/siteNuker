@@ -8,6 +8,10 @@ interface SliderProps {
   max?: number;
   step?: number;
   disabled?: boolean;
+  /** 0-100: percentage of hard cap (60min) already used — subtle amber track indicator */
+  usedPercent?: number;
+  /** Effective floor: thumb cannot go below this value (used time rounded down to step) */
+  minValue?: number;
 }
 
 function snap(raw: number, min: number, max: number, step: number): number {
@@ -21,10 +25,14 @@ export function Slider({
   max = LIMIT_MAX,
   step = LIMIT_STEP,
   disabled = false,
+  usedPercent,
+  minValue,
 }: SliderProps) {
   const trackRef = useRef<HTMLDivElement>(null);
 
   const percentage = max === min ? 0 : ((value - min) / (max - min)) * 100;
+
+  const effectiveMin = minValue ?? min;
 
   const resolveValue = useCallback(
     (clientX: number) => {
@@ -35,9 +43,10 @@ export function Slider({
         Math.min(1, (clientX - rect.left) / rect.width),
       );
       const rawValue = snap(min + (max - min) * fraction, min, max, step);
-      if (rawValue !== value) onChange(rawValue);
+      const clamped = Math.max(effectiveMin, rawValue);
+      if (clamped !== value) onChange(clamped);
     },
-    [min, max, step, value, onChange],
+    [min, max, step, value, onChange, effectiveMin],
   );
 
   const handlePointerDown = useCallback(
@@ -69,9 +78,9 @@ export function Slider({
       if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
         newValue = Math.min(max, value + step);
       } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
-        newValue = Math.max(min, value - step);
+        newValue = Math.max(effectiveMin, value - step);
       } else if (event.key === 'Home') {
-        newValue = min;
+        newValue = effectiveMin;
       } else if (event.key === 'End') {
         newValue = max;
       } else {
@@ -80,7 +89,7 @@ export function Slider({
       event.preventDefault();
       if (newValue !== value) onChange(newValue);
     },
-    [disabled, value, min, max, step, onChange],
+    [disabled, value, effectiveMin, max, step, onChange],
   );
 
   return (
@@ -105,6 +114,14 @@ export function Slider({
         className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-accent-red"
         style={{ width: `max(${percentage}%, ${value > min ? 12 : 0}px)` }}
       />
+
+      {/* Usage indicator — amber overlay showing consumed time against 60-min cap */}
+      {usedPercent != null && usedPercent > 0 && (
+        <div
+          className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-accent-amber/50"
+          style={{ width: `${Math.min(usedPercent, 100)}%` }}
+        />
+      )}
 
       {/* Thumb */}
       <div

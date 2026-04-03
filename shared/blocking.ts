@@ -42,7 +42,7 @@ function getDomainPatterns(domain: string): string[] {
 function buildRedirectRules(
   domain: string,
   isNuclear: boolean,
-): browser.declarativeNetRequest.Rule[] {
+): Browser.declarativeNetRequest.Rule[] {
   const patterns = getDomainPatterns(domain);
   const base = isNuclear
     ? SITE_RULE_BASE + NUCLEAR_RULE_OFFSET
@@ -56,13 +56,13 @@ function buildRedirectRules(
         : domainToRuleId(pattern, base),
     priority: 1,
     action: {
-      type: 'redirect' as browser.declarativeNetRequest.RuleActionType,
+      type: 'redirect' as Browser.declarativeNetRequest.RuleActionType,
       redirect: { extensionPath: BLOCKED_PAGE_PATH },
     },
     condition: {
       requestDomains: [pattern],
       resourceTypes: [
-        'main_frame' as browser.declarativeNetRequest.ResourceType,
+        'main_frame' as Browser.declarativeNetRequest.ResourceType,
       ],
     },
   }));
@@ -105,7 +105,7 @@ export async function removeSiteBlockRule(site: SiteConfig): Promise<void> {
 
 /** Add nuclear mode blocking rules for ALL sites */
 export async function addNuclearRules(sites: SiteConfig[]): Promise<void> {
-  const allRules: browser.declarativeNetRequest.Rule[] = [];
+  const allRules: Browser.declarativeNetRequest.Rule[] = [];
   const allRemoveIds: number[] = [];
 
   for (const site of sites) {

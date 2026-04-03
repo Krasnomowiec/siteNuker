@@ -1,0 +1,38 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded square background with gradient -->
+  <defs>
+    <linearGradient id="ctaGrad" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffb4ab"/>
+      <stop offset="100%" stop-color="#fe554a"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="16" fill="url(#ctaGrad)"/>
+
+  <!-- Nuclear symbol scaled from 16x16 viewBox to fill ~85% of 128px = ~108px, centered -->
+  <g transform="translate(14, 14) scale(6.25)">
+    <path
+      d="M2.97785 13.0075C2.57374 12.1846 2.43618 11.2561 2.58431 10.3513C2.73243 9.44654 3.15888 8.61045 3.80429 7.95943L5.26985 6.48248C5.45563 6.29618 5.67633 6.14838 5.9193 6.04753C6.16228 5.94669 6.42276 5.89478 6.68582 5.89478C6.94888 5.89478 7.20936 5.94669 7.45234 6.04753C7.69531 6.14838 7.91601 6.29618 8.10179 6.48248L9.51776 7.89881C9.70401 8.08464 9.85177 8.30539 9.9526 8.54843C10.0534 8.79147 10.1053 9.05201 10.1053 9.31514C10.1053 9.57827 10.0534 9.83882 9.9526 10.0819C9.85177 10.3249 9.70401 10.5456 9.51776 10.7315L8.06873 12.1809C7.41445 12.836 6.57057 13.2684 5.65679 13.4167C4.743 13.5651 3.80571 13.422 2.97785 13.0075Z"
+      stroke="#131317"
+      stroke-width="1.2"
+      stroke-miterlimit="10"
+    />
+    <path
+      d="M7.57918 12.6315L3.36865 8.42102"
+      stroke="#131317"
+      stroke-width="1.2"
+      stroke-miterlimit="10"
+    />
+    <path
+      d="M5.05273 6.73682L9.26326 10.9473"
+      stroke="#131317"
+      stroke-width="1.2"
+      stroke-miterlimit="10"
+    />
+    <path
+      d="M11.6344 7.579L9.34048 6.65942L8.4209 4.36552L10.2247 2.52637L10.3611 2.83963L11.1998 4.80005L13.4735 5.77521L11.6344 7.579Z"
+      stroke="#131317"
+      stroke-width="1.2"
+      stroke-miterlimit="10"
+    />
+  </g>
+</svg>
