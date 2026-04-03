@@ -1,0 +1,177 @@
+{
+  "extName": {
+    "message": "SitesNuker"
+  },
+  "extDescription": {
+    "message": "Limit your time on addictive websites. Block sites when daily limits are reached."
+  },
+
+  "headerSiteCount": {
+    "message": "$count$/$max$ blocked",
+    "placeholders": {
+      "count": { "content": "$1" },
+      "max": { "content": "$2" }
+    }
+  },
+
+  "addSitePlaceholder": {
+    "message": "URL"
+  },
+  "addSiteDailyLimit": {
+    "message": "Daily limit"
+  },
+  "addSiteErrorInvalid": {
+    "message": "Invalid site name"
+  },
+  "addSiteErrorDuplicate": {
+    "message": "This site is already on the list"
+  },
+  "addSiteErrorAtLimit": {
+    "message": "Reached limit of $max$ sites",
+    "placeholders": {
+      "max": { "content": "$1" }
+    }
+  },
+
+  "siteRowDailyLimit": {
+    "message": "Daily limit"
+  },
+  "siteRowHoldToSave": {
+    "message": "Hold to save"
+  },
+  "siteRowLimitExhausted": {
+    "message": "Limit exhausted. Resets at midnight."
+  },
+
+  "deleteConfirmTitle": {
+    "message": "Remove $domain$ from block list?",
+    "placeholders": {
+      "domain": { "content": "$1" }
+    }
+  },
+  "deleteConfirmDescription": {
+    "message": "Remember, once removed the site will regain its pull over you."
+  },
+  "deleteConfirmRemove": {
+    "message": "Remove"
+  },
+  "deleteConfirmKeep": {
+    "message": "Keep"
+  },
+
+  "disableConfirmTitle": {
+    "message": "Really turn off SitesNuker?"
+  },
+  "disableConfirmDescription": {
+    "message": "All blocked sites will be within reach again."
+  },
+  "disableConfirmOff": {
+    "message": "Turn off"
+  },
+  "disableConfirmKeep": {
+    "message": "Keep on"
+  },
+
+  "nuclearTitle": {
+    "message": "Nuclear mode"
+  },
+  "nuclearDescription": {
+    "message": "Temporary block of all sites on your list."
+  },
+  "nuclearActivate": {
+    "message": "Launch"
+  },
+  "nuclearConfirmTitle": {
+    "message": "$minutes$ minutes of peace",
+    "placeholders": {
+      "minutes": { "content": "$1" }
+    }
+  },
+  "nuclearConfirmDescription": {
+    "message": "Once launched, there's no going back. All sites on the list will be unavailable."
+  },
+  "nuclearConfirmLaunch": {
+    "message": "Launch"
+  },
+  "nuclearConfirmCancel": {
+    "message": "Retreat"
+  },
+  "nuclearTimeLabel5": {
+    "message": "Quick hit"
+  },
+  "nuclearTimeLabel15": {
+    "message": "Standard"
+  },
+  "nuclearTimeLabel30": {
+    "message": "Tactical"
+  },
+  "nuclearTimeLabel60": {
+    "message": "Full hour"
+  },
+  "nuclearTimeLabel120": {
+    "message": "Deep work"
+  },
+  "nuclearTimeLabel180": {
+    "message": "Siege"
+  },
+  "nuclearTimeLabel240": {
+    "message": "Extermination"
+  },
+  "nuclearTimeLabel300": {
+    "message": "Nuclear winter"
+  },
+
+  "nuclearCountdownTitle": {
+    "message": "Nuclear mode"
+  },
+  "nuclearCountdownExpired": {
+    "message": "Time's up. Back to action."
+  },
+  "nuclearCountdownActive": {
+    "message": "Your site list just vanished from the map."
+  },
+  "nuclearCountdownDone": {
+    "message": "Done"
+  },
+
+  "statsTitle": {
+    "message": "Statistics"
+  },
+  "statsTimeOnBlocked": {
+    "message": "TIME ON BLOCKED SITES"
+  },
+  "statsToday": {
+    "message": "TODAY"
+  },
+  "statsWeeklyTrend": {
+    "message": "WEEKLY TREND"
+  },
+  "statsEmpty": {
+    "message": "Nothing here yet"
+  },
+  "statsPerDay": {
+    "message": "/ day"
+  },
+  "statsVsAverage": {
+    "message": "vs. 7-day average"
+  },
+
+  "unitMin": {
+    "message": "min"
+  },
+
+  "blockedTitle": {
+    "message": "That's it"
+  },
+  "blockedQuote": {
+    "message": "\u201cLife is somewhere else.\u201d"
+  },
+
+  "dayMon": { "message": "Mon" },
+  "dayTue": { "message": "Tue" },
+  "dayWed": { "message": "Wed" },
+  "dayThu": { "message": "Thu" },
+  "dayFri": { "message": "Fri" },
+  "daySat": { "message": "Sat" },
+  "daySun": { "message": "Sun" }
+}

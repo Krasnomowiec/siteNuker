@@ -1,0 +1,177 @@
+{
+  "extName": {
+    "message": "SitesNuker"
+  },
+  "extDescription": {
+    "message": "Ogranicz czas na uzależniających stronach. Blokuj strony po przekroczeniu dziennego limitu."
+  },
+
+  "headerSiteCount": {
+    "message": "$count$/$max$ zablokowanych",
+    "placeholders": {
+      "count": { "content": "$1" },
+      "max": { "content": "$2" }
+    }
+  },
+
+  "addSitePlaceholder": {
+    "message": "URL"
+  },
+  "addSiteDailyLimit": {
+    "message": "Limit dzienny"
+  },
+  "addSiteErrorInvalid": {
+    "message": "Nazwa strony niepoprawna"
+  },
+  "addSiteErrorDuplicate": {
+    "message": "Ta strona jest już na\u00A0liście"
+  },
+  "addSiteErrorAtLimit": {
+    "message": "Osiągnięto limit $max$ stron",
+    "placeholders": {
+      "max": { "content": "$1" }
+    }
+  },
+
+  "siteRowDailyLimit": {
+    "message": "Limit dzienny"
+  },
+  "siteRowHoldToSave": {
+    "message": "Przytrzymaj i\u00A0zapisz"
+  },
+  "siteRowLimitExhausted": {
+    "message": "Limit wyczerpany. Reset o\u00A0północy."
+  },
+
+  "deleteConfirmTitle": {
+    "message": "Usunąć $domain$ z\u00A0listy blokowania?",
+    "placeholders": {
+      "domain": { "content": "$1" }
+    }
+  },
+  "deleteConfirmDescription": {
+    "message": "Pamiętaj, że\u00A0po\u00A0usunięciu strona znów będzie miała siłę oddziaływania."
+  },
+  "deleteConfirmRemove": {
+    "message": "Usuń"
+  },
+  "deleteConfirmKeep": {
+    "message": "Zostaw"
+  },
+
+  "disableConfirmTitle": {
+    "message": "Naprawdę chcesz wyłączyć SitesNuker?"
+  },
+  "disableConfirmDescription": {
+    "message": "Wszystkie zablokowane strony znów będą na\u00A0wyciągnięcie ręki."
+  },
+  "disableConfirmOff": {
+    "message": "Wyłącz"
+  },
+  "disableConfirmKeep": {
+    "message": "Nie wyłączaj"
+  },
+
+  "nuclearTitle": {
+    "message": "Tryb nuklearny"
+  },
+  "nuclearDescription": {
+    "message": "Czasowa blokada wszystkich stron z\u00A0Twojej listy."
+  },
+  "nuclearActivate": {
+    "message": "Odpalaj"
+  },
+  "nuclearConfirmTitle": {
+    "message": "$minutes$ minut świętego spokoju",
+    "placeholders": {
+      "minutes": { "content": "$1" }
+    }
+  },
+  "nuclearConfirmDescription": {
+    "message": "Po odpaleniu nie\u00A0ma powrotu. Wszystkie strony z\u00A0listy będą niedostępne."
+  },
+  "nuclearConfirmLaunch": {
+    "message": "Odpalaj"
+  },
+  "nuclearConfirmCancel": {
+    "message": "Odwrót"
+  },
+  "nuclearTimeLabel5": {
+    "message": "Szybka akcja"
+  },
+  "nuclearTimeLabel15": {
+    "message": "Standardowa"
+  },
+  "nuclearTimeLabel30": {
+    "message": "Taktyczna"
+  },
+  "nuclearTimeLabel60": {
+    "message": "Pełna godzina"
+  },
+  "nuclearTimeLabel120": {
+    "message": "Głęboka praca"
+  },
+  "nuclearTimeLabel180": {
+    "message": "Oblężenie"
+  },
+  "nuclearTimeLabel240": {
+    "message": "Eksterminacja"
+  },
+  "nuclearTimeLabel300": {
+    "message": "Nuklearna zima"
+  },
+
+  "nuclearCountdownTitle": {
+    "message": "Tryb nuklearny"
+  },
+  "nuclearCountdownExpired": {
+    "message": "Czas minął. Wracasz do\u00A0akcji."
+  },
+  "nuclearCountdownActive": {
+    "message": "Twoja lista stron właśnie zniknęła z\u00A0mapy."
+  },
+  "nuclearCountdownDone": {
+    "message": "Gotowe"
+  },
+
+  "statsTitle": {
+    "message": "Statystyki"
+  },
+  "statsTimeOnBlocked": {
+    "message": "CZAS NA ZABLOKOWANYCH STRONACH"
+  },
+  "statsToday": {
+    "message": "DZIŚ"
+  },
+  "statsWeeklyTrend": {
+    "message": "TREND TYGODNIOWY"
+  },
+  "statsEmpty": {
+    "message": "Nic tu nie ma"
+  },
+  "statsPerDay": {
+    "message": "/ dzień"
+  },
+  "statsVsAverage": {
+    "message": "vs. średnia z 7 dni"
+  },
+
+  "unitMin": {
+    "message": "min"
+  },
+
+  "blockedTitle": {
+    "message": "Tutaj już koniec"
+  },
+  "blockedQuote": {
+    "message": "\u201eŻycie jest gdzieś indziej.\u201d"
+  },
+
+  "dayMon": { "message": "Pn" },
+  "dayTue": { "message": "Wt" },
+  "dayWed": { "message": "Śr" },
+  "dayThu": { "message": "Cz" },
+  "dayFri": { "message": "Pt" },
+  "daySat": { "message": "So" },
+  "daySun": { "message": "Nd" }
+}
