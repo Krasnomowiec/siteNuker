@@ -6,7 +6,6 @@ import { PageHeader } from '../components/PageHeader';
 import { NorthStarCard } from '../components/stats/NorthStarCard';
 import { TodayHorizontalChart } from '../components/stats/TodayHorizontalChart';
 import { WeeklyVerticalChart } from '../components/stats/WeeklyVerticalChart';
-import { USE_MOCK_DATA, getMockStats } from '../components/stats/mockData';
 
 interface StatisticsProps {
   storage: StorageSchema;
@@ -15,7 +14,7 @@ interface StatisticsProps {
 
 export function Statistics({ storage, onBack }: StatisticsProps) {
   const stats = useMemo(
-    () => (USE_MOCK_DATA ? getMockStats() : computeAllStats(storage)),
+    () => computeAllStats(storage),
     [storage],
   );
 

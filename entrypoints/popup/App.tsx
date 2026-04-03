@@ -101,6 +101,7 @@ export default function App() {
         <NuclearSetup
           onBack={() => setPage('main')}
           onActivate={handleNuclearActivate}
+          hasSites={storage.sites.length > 0}
         />
       )}
 

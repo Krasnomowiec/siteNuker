@@ -132,6 +132,12 @@ html, body {
   color: var(--color-text-primary);
 }
 
+/* Focus indicators — visible on dark background */
+:focus-visible {
+  outline: 1px solid var(--color-accent-red-soft);
+  outline-offset: 2px;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--color-bg-primary); }

@@ -80,7 +80,7 @@ export function ExpandedCard({
             <span
               className={`text-xs font-bold whitespace-nowrap rounded-sm px-2.5 py-1 ${isExceeded ? 'text-accent-red bg-accent-red/15' : 'text-accent-red-soft bg-accent-red-soft/15'}`}
             >
-              {formatTimeCompact(Math.max(0, remaining))} {t('unitMin')}
+              {formatTimeCompact(Math.max(0, remaining))}
             </span>
           )}
           {!isSoftLocked && (

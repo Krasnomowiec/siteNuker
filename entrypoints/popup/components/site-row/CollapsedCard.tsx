@@ -1,6 +1,6 @@
 import type { SiteConfig } from '@/shared/types';
 import { formatTimeCompact } from '@/shared/utils';
-import { t } from '@/shared/i18n';
+
 import { SiteFavicon } from '../SiteFavicon';
 import { ChevronIcon } from '../icons';
 
@@ -32,7 +32,7 @@ export function CollapsedCard({
         <span
           className={`text-xs font-bold whitespace-nowrap rounded-sm px-2.5 py-1 ${isExceeded ? 'text-accent-red bg-accent-red/15' : 'text-accent-red-soft bg-accent-red-soft/15 group-hover:bg-accent-red-soft/25'}`}
         >
-          {formatTimeCompact(Math.max(0, remaining))} {t('unitMin')}
+          {formatTimeCompact(Math.max(0, remaining))}
         </span>
         <ChevronIcon
           size={22}

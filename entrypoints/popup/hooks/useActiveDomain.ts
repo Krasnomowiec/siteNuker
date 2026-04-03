@@ -42,6 +42,8 @@ export function useActiveDomain() {
 
     const handleStorageChange = () => {
       sync();
+      // Retry after background has processed the change (race condition)
+      setTimeout(sync, 500);
     };
 
     browser.storage.onChanged.addListener(handleStorageChange);

@@ -11,6 +11,16 @@ import {
   reconcileRules,
   isDomainBlocked,
 } from '@/shared/blocking';
+import {
+  type DomainSession,
+  getSessionElapsed as _getSessionElapsed,
+  getUsedSeconds as _getUsedSeconds,
+  createWriteLock,
+  createSelfWriteTracker,
+  buildBlockedDomainsSet,
+  accumulateSessionUsage,
+  pruneHistory,
+} from '@/shared/backgroundHelpers';
 
 const FLUSH_INTERVAL_TICKS = 5;
 const DATE_CHECK_INTERVAL_TICKS = 60;
@@ -19,12 +29,6 @@ const MAX_ELAPSED_SECONDS = FLUSH_INTERVAL_TICKS * 2 + 2;
 
 export default defineBackground(() => {
   // --- Per-domain session tracking ---
-
-  interface DomainSession {
-    tabIds: Set<number>;
-    sessionStart: number;
-    baseUsedSeconds: number;
-  }
 
   /** Active sessions — one per tracked domain that has open tabs */
   const trackedSessions = new Map<string, DomainSession>();
@@ -38,16 +42,11 @@ export default defineBackground(() => {
   let cachedStorage: StorageSchema | null = null;
   let currentDateKey = getTodayKey();
 
-  const pendingSelfWrites: number[] = [];
-  function markSelfWrite(): void {
-    if (pendingSelfWrites.length >= 50) pendingSelfWrites.splice(0, 25);
-    pendingSelfWrites.push(Date.now());
-  }
+  const selfWrites = createSelfWriteTracker();
+  const { withLock: withWriteLock } = createWriteLock();
 
   /** Domains blocked by site-level rules (limit exceeded) */
   const blockedDomains = new Set<string>();
-  /** Lock for storage writes to prevent lost updates */
-  let writeLock: Promise<void> | null = null;
   /** Resolves when background init is complete (storage loaded, rules reconciled) */
   let resolveInit!: () => void;
   const initReady: Promise<void> = new Promise((r) => {
@@ -57,18 +56,11 @@ export default defineBackground(() => {
   // --- Helpers ---
 
   function getSessionElapsed(session: DomainSession): number {
-    if (session.sessionStart === 0) return 0;
-    const raw = Math.floor((Date.now() - session.sessionStart) / 1000);
-    return Math.min(raw, MAX_ELAPSED_SECONDS);
+    return _getSessionElapsed(session, MAX_ELAPSED_SECONDS);
   }
 
   function getUsedSeconds(domain: string): number {
-    const session = trackedSessions.get(domain);
-    if (session) {
-      return session.baseUsedSeconds + getSessionElapsed(session);
-    }
-    const dayUsage = cachedStorage?.usage[currentDateKey] ?? {};
-    return dayUsage[domain]?.usedSeconds ?? 0;
+    return _getUsedSeconds(domain, trackedSessions, cachedStorage, currentDateKey, MAX_ELAPSED_SECONDS);
   }
 
   // --- Tab tracking ---
@@ -114,7 +106,7 @@ export default defineBackground(() => {
     tabId: number,
     url: string,
   ): Promise<void> {
-    if (!cachedStorage) return;
+    if (!cachedStorage || !cachedStorage.isEnabled) return;
 
     const hostname = extractDomain(url, DOMAIN_ALIASES);
     const matchedSite = hostname
@@ -139,7 +131,7 @@ export default defineBackground(() => {
   }
 
   async function scanAllTabs(): Promise<void> {
-    if (!cachedStorage) return;
+    if (!cachedStorage || !cachedStorage.isEnabled) return;
 
     let tabs;
     try {
@@ -219,20 +211,6 @@ export default defineBackground(() => {
 
   // --- Storage flush ---
 
-  async function withWriteLock<T>(fn: () => Promise<T>): Promise<T> {
-    while (writeLock) await writeLock;
-    let unlock: () => void;
-    writeLock = new Promise<void>((resolve) => {
-      unlock = resolve;
-    });
-    try {
-      return await fn();
-    } finally {
-      writeLock = null;
-      unlock!();
-    }
-  }
-
   async function flushAllUsage(): Promise<void> {
     return withWriteLock(flushAllUsageInner);
   }
@@ -242,30 +220,22 @@ export default defineBackground(() => {
 
     const dateKey = currentDateKey;
     const usage = { ...cachedStorage.usage };
-    const dayUsage = { ...(usage[dateKey] ?? {}) };
-    let changed = false;
+    const { updatedDayUsage, changed } = accumulateSessionUsage(
+      trackedSessions,
+      usage[dateKey] ?? {},
+      MAX_ELAPSED_SECONDS,
+    );
 
-    for (const [domain, session] of trackedSessions) {
-      const currentUsed =
+    // Reset session timers after accumulation
+    for (const [, session] of trackedSessions) {
+      session.baseUsedSeconds =
         session.baseUsedSeconds + getSessionElapsed(session);
-      const domainUsage = dayUsage[domain] ?? {
-        usedSeconds: 0,
-        blockedAttempts: 0,
-        limitChanges: [],
-      };
-
-      if (currentUsed !== domainUsage.usedSeconds) {
-        dayUsage[domain] = { ...domainUsage, usedSeconds: currentUsed };
-        changed = true;
-      }
-
-      session.baseUsedSeconds = currentUsed;
       session.sessionStart = Date.now();
     }
 
     if (changed) {
-      usage[dateKey] = dayUsage;
-      markSelfWrite();
+      usage[dateKey] = updatedDayUsage;
+      selfWrites.mark();
       await writeStorage({ usage });
       cachedStorage = { ...cachedStorage, usage };
     }
@@ -288,7 +258,7 @@ export default defineBackground(() => {
       if (usedSeconds <= domainUsage.usedSeconds) return;
       dayUsage[domain] = { ...domainUsage, usedSeconds };
       usage[dateKey] = dayUsage;
-      markSelfWrite();
+      selfWrites.mark();
       await writeStorage({ usage });
       cachedStorage = { ...cachedStorage, usage };
     });
@@ -339,7 +309,7 @@ export default defineBackground(() => {
   async function handleNuclearExpired(): Promise<void> {
     return withWriteLock(async () => {
       const sites = cachedStorage?.sites ?? [];
-      markSelfWrite();
+      selfWrites.mark();
       await writeStorage({ nuclearMode: null });
       if (cachedStorage) {
         cachedStorage = { ...cachedStorage, nuclearMode: null };
@@ -366,22 +336,18 @@ export default defineBackground(() => {
         const oldDayUsage = cachedStorage.usage[oldDateKey];
 
         if (oldDayUsage && Object.keys(oldDayUsage).length > 0) {
-          const history = { ...cachedStorage.history };
+          let history = { ...cachedStorage.history };
           history[oldDateKey] = oldDayUsage;
 
           const cutoff = new Date();
           cutoff.setDate(cutoff.getDate() - 30);
           const cutoffKey = getDateKey(cutoff);
-          for (const key of Object.keys(history)) {
-            if (key < cutoffKey) {
-              delete history[key];
-            }
-          }
+          history = pruneHistory(history, cutoffKey);
 
           const usage = { ...cachedStorage.usage };
           delete usage[oldDateKey];
 
-          markSelfWrite();
+          selfWrites.mark();
           await writeStorage({ history, usage });
           cachedStorage = { ...cachedStorage, history, usage };
         }
@@ -450,7 +416,7 @@ export default defineBackground(() => {
         blockedAttempts: domainUsage.blockedAttempts + 1,
       };
       usage[dateKey] = dayUsage;
-      markSelfWrite();
+      selfWrites.mark();
       await writeStorage({ usage });
       cachedStorage = { ...cachedStorage, usage };
     });
@@ -461,20 +427,17 @@ export default defineBackground(() => {
   function rebuildBlockedDomainsSet(): void {
     blockedDomains.clear();
     if (!cachedStorage) return;
-    const today = currentDateKey;
-    const dayUsage = cachedStorage.usage[today] ?? {};
-    for (const site of cachedStorage.sites) {
-      const usedSeconds = dayUsage[site.domain]?.usedSeconds ?? 0;
-      if (isDomainBlocked(site, usedSeconds)) {
-        blockedDomains.add(site.domain);
-      }
+    const dayUsage = cachedStorage.usage[currentDateKey] ?? {};
+    const rebuilt = buildBlockedDomainsSet(cachedStorage.sites, dayUsage);
+    for (const domain of rebuilt) {
+      blockedDomains.add(domain);
     }
   }
 
   // --- Main tick ---
 
   setInterval(() => {
-    if (!cachedStorage) return;
+    if (!cachedStorage || !cachedStorage.isEnabled) return;
     tickCount++;
 
     checkNuclearExpiry();
@@ -663,18 +626,7 @@ export default defineBackground(() => {
   browser.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'local') return;
 
-    const now = Date.now();
-    const recentIndex = pendingSelfWrites.findIndex((ts) => now - ts < 2000);
-    if (recentIndex !== -1) {
-      pendingSelfWrites.splice(recentIndex, 1);
-      return;
-    }
-    while (
-      pendingSelfWrites.length > 0 &&
-      now - pendingSelfWrites[0]! > 5000
-    ) {
-      pendingSelfWrites.shift();
-    }
+    if (selfWrites.consumeIfRecent()) return;
 
     const prevStorage = cachedStorage;
     cachedStorage = await readStorage();
@@ -751,6 +703,7 @@ export default defineBackground(() => {
           ? blockedDomains.has(matchedSite.domain)
           : false;
         const nuclear =
+          matchedSite != null &&
           cachedStorage?.nuclearMode != null &&
           new Date(cachedStorage.nuclearMode.expiresAt).getTime() >
             Date.now();
@@ -772,7 +725,7 @@ export default defineBackground(() => {
         cachedStorage.nuclearMode.expiresAt,
       ).getTime();
       if (isNaN(expiresAt) || expiresAt <= Date.now()) {
-        markSelfWrite();
+        selfWrites.mark();
         await writeStorage({ nuclearMode: null });
         cachedStorage = { ...cachedStorage, nuclearMode: null };
       }

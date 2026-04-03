@@ -8,6 +8,7 @@ import { ConfirmationSheet } from '../components/ConfirmationSheet';
 interface NuclearSetupProps {
   onBack: () => void;
   onActivate: (durationMinutes: number) => void;
+  hasSites: boolean;
 }
 
 const TIME_LABEL_KEYS: Record<number, string> = {
@@ -21,9 +22,22 @@ const TIME_LABEL_KEYS: Record<number, string> = {
   300: 'nuclearTimeLabel300',
 };
 
-export function NuclearSetup({ onBack, onActivate }: NuclearSetupProps) {
+export function NuclearSetup({ onBack, onActivate, hasSites }: NuclearSetupProps) {
   const [selected, setSelected] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  if (!hasSites) {
+    return (
+      <div className="flex-1 flex flex-col overflow-y-auto">
+        <PageHeader title={t('nuclearTitle')} onBack={onBack} />
+        <div className="flex-1 flex items-center justify-center px-4 py-12">
+          <p className="text-text-tertiary text-body text-center">
+            {t('nuclearEmpty')}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col overflow-y-auto">

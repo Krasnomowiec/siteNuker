@@ -109,7 +109,9 @@ export function MainList({ storage }: MainListProps) {
             key={site.id}
             site={site}
             usedSeconds={
-              liveUsage[site.domain] ?? getUsedSeconds(todayUsage, site.domain)
+              storage.isEnabled
+                ? (liveUsage[site.domain] ?? getUsedSeconds(todayUsage, site.domain))
+                : getUsedSeconds(todayUsage, site.domain)
             }
             isExpanded={expandedId === site.id}
             onToggleExpand={() =>

@@ -26,7 +26,7 @@ export interface SiteConfig {
   /** Canonical domain (e.g. "youtube.com") */
   domain: string;
 
-  /** Current daily limit in minutes (0–120, step 5) */
+  /** Current daily limit in minutes (0–60, step 5) */
   dailyLimitMinutes: number;
 
   /** Limit set when first added (for badge calculation) */

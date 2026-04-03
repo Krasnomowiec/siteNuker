@@ -33,6 +33,9 @@ export default defineConfig({
         96: 'icon/96.png',
       },
     },
+    content_security_policy: {
+      extension_pages: "script-src 'self'; style-src 'self' 'unsafe-inline';",
+    },
     host_permissions: ['<all_urls>'],
     browser_specific_settings: {
       gecko: {

@@ -15,7 +15,7 @@
   },
 
   "addSitePlaceholder": {
-    "message": "URL"
+    "message": "Wpisz URL"
   },
   "addSiteDailyLimit": {
     "message": "Limit dzienny"
@@ -50,13 +50,13 @@
   },
 
   "deleteConfirmTitle": {
-    "message": "Usunąć $domain$ z\u00A0listy blokowania?",
+    "message": "Usunąć $domain$ z\u00A0listy blokad?",
     "placeholders": {
       "domain": { "content": "$1" }
     }
   },
   "deleteConfirmDescription": {
-    "message": "Pamiętaj, że\u00A0po\u00A0usunięciu strona znów będzie miała siłę oddziaływania."
+    "message": "Bez blokady ta strona znów będzie na\u00A0wyciągnięcie ręki."
   },
   "deleteConfirmRemove": {
     "message": "Usuń"
@@ -66,7 +66,7 @@
   },
 
   "disableConfirmTitle": {
-    "message": "Naprawdę chcesz wyłączyć SitesNuker?"
+    "message": "Wyłączyć SitesNuker?"
   },
   "disableConfirmDescription": {
     "message": "Wszystkie zablokowane strony znów będą na\u00A0wyciągnięcie ręki."
@@ -82,7 +82,10 @@
     "message": "Tryb nuklearny"
   },
   "nuclearDescription": {
-    "message": "Czasowa blokada wszystkich stron z\u00A0Twojej listy."
+    "message": "Blokuje całą listę na\u00A0określony czas."
+  },
+  "nuclearEmpty": {
+    "message": "Lista blokad jest pusta. Dodaj stronę, żeby odblokować tryb nuklearny."
   },
   "nuclearActivate": {
     "message": "Odpalaj"
@@ -188,6 +191,6 @@
   "daySun": { "message": "Nd" },
 
   "mainListEmpty": {
-    "message": "Nie masz jeszcze żadnych stron."
+    "message": "Pusto. Zablokuj pierwszą stronę."
   }
 }

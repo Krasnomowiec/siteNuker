@@ -11,6 +11,7 @@ export function PageHeader({ title, onBack }: PageHeaderProps) {
       <button
         type="button"
         onClick={onBack}
+        aria-label="Go back"
         className="flex items-center justify-center h-5 p-0 text-text-tertiary hover:text-text-primary transition-colors"
       >
         <ChevronIcon size={18} className="rotate-90" />
