@@ -70,7 +70,3 @@ public/
   icon/                — extension icons (16–128px)
   rules/               — declarativeNetRequest static rules
 ```
-
-## License
-
-MIT
