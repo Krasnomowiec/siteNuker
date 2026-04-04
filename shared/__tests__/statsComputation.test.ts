@@ -44,8 +44,6 @@ describe('computeAllStats', () => {
 
       expect(stats.northStar.avgDailyMinutes).toBe(0);
       expect(stats.northStar.percentChange).toBeNull();
-      expect(stats.hero.reclaimedMinutes).toBe(0);
-      expect(stats.hero.totalBlockedAttempts).toBe(0);
       expect(stats.todayBars).toHaveLength(0);
       expect(stats.totalTodayMinutes).toBe(0);
       expect(stats.weeklyTrend.days).toHaveLength(7);
@@ -220,42 +218,6 @@ describe('computeAllStats', () => {
       );
 
       expect(stats.todayBars[0]!.colorTier).toBe('red');
-    });
-  });
-
-  describe('hero stats (time reclaimed)', () => {
-    it('calculates reclaimed minutes from blocked attempts', () => {
-      const todayKey = daysAgo(0);
-      const stats = computeAllStats(
-        makeStorage({
-          usage: {
-            [todayKey]: makeDayUsage({
-              'youtube.com': { usedSeconds: 600, blockedAttempts: 3 },
-              'reddit.com': { usedSeconds: 300, blockedAttempts: 1 },
-            }),
-          },
-        }),
-      );
-
-      // youtube: 3 * 12min = 36min, reddit: 1 * 8min = 8min
-      expect(stats.hero.totalBlockedAttempts).toBe(4);
-      expect(stats.hero.reclaimedMinutes).toBe(44);
-    });
-
-    it('returns zero when no blocked attempts', () => {
-      const todayKey = daysAgo(0);
-      const stats = computeAllStats(
-        makeStorage({
-          usage: {
-            [todayKey]: makeDayUsage({
-              'youtube.com': { usedSeconds: 300 },
-            }),
-          },
-        }),
-      );
-
-      expect(stats.hero.totalBlockedAttempts).toBe(0);
-      expect(stats.hero.reclaimedMinutes).toBe(0);
     });
   });
 

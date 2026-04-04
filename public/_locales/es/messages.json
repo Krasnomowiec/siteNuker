@@ -1,0 +1,207 @@
+{
+  "extName": {
+    "message": "SitesNuker"
+  },
+  "extDescription": {
+    "message": "Limita tu tiempo en sitios adictivos. Bloquea sitios al alcanzar el límite diario."
+  },
+  "headerSiteCount": {
+    "message": "$count$/$max$ bloqueados",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "max": {
+        "content": "$2"
+      }
+    }
+  },
+  "addSitePlaceholder": {
+    "message": "URL"
+  },
+  "addSiteDailyLimit": {
+    "message": "Límite diario"
+  },
+  "addSiteErrorInvalid": {
+    "message": "Nombre de sitio no válido"
+  },
+  "addSiteErrorDuplicate": {
+    "message": "Este sitio ya está en la lista"
+  },
+  "addSiteErrorAtLimit": {
+    "message": "Límite de $max$ sitios alcanzado",
+    "placeholders": {
+      "max": {
+        "content": "$1"
+      }
+    }
+  },
+  "siteRowDailyLimit": {
+    "message": "Límite diario"
+  },
+  "siteRowHoldToSave": {
+    "message": "Mantén para guardar"
+  },
+  "siteRowLimitExhausted": {
+    "message": "Límite agotado. Se reinicia a medianoche."
+  },
+  "siteRowSoftBlocked": {
+    "message": "Bloqueado"
+  },
+  "deleteConfirmTitle": {
+    "message": "¿Eliminar $domain$ de la lista de bloqueo?",
+    "placeholders": {
+      "domain": {
+        "content": "$1"
+      }
+    }
+  },
+  "deleteConfirmDescription": {
+    "message": "Sin el bloqueo, este sitio volverá a estar al alcance."
+  },
+  "deleteConfirmRemove": {
+    "message": "Eliminar"
+  },
+  "deleteConfirmKeep": {
+    "message": "Mantener"
+  },
+  "disableConfirmTitle": {
+    "message": "¿Desactivar SitesNuker?"
+  },
+  "disableConfirmDescription": {
+    "message": "Todos los sitios bloqueados volverán a estar accesibles."
+  },
+  "disableConfirmOff": {
+    "message": "Desactivar"
+  },
+  "disableConfirmKeep": {
+    "message": "Mantener activo"
+  },
+  "nuclearTitle": {
+    "message": "Modo nuclear"
+  },
+  "nuclearDescription": {
+    "message": "Bloquea toda tu lista durante un tiempo determinado."
+  },
+  "nuclearEmpty": {
+    "message": "Tu lista de bloqueo está vacía. Añade un sitio para desbloquear el modo nuclear."
+  },
+  "nuclearActivate": {
+    "message": "Lanzar"
+  },
+  "nuclearConfirmTitle": {
+    "message": "$minutes$ minutos de paz",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "nuclearConfirmDescription": {
+    "message": "Una vez lanzado, no hay vuelta atrás. Todos los sitios de la lista quedarán inaccesibles."
+  },
+  "nuclearConfirmLaunch": {
+    "message": "Lanzar"
+  },
+  "nuclearConfirmCancel": {
+    "message": "Retirada"
+  },
+  "nuclearTimeLabel5": {
+    "message": "Golpe rápido"
+  },
+  "nuclearTimeLabel15": {
+    "message": "Estándar"
+  },
+  "nuclearTimeLabel30": {
+    "message": "Táctico"
+  },
+  "nuclearTimeLabel60": {
+    "message": "Hora completa"
+  },
+  "nuclearTimeLabel120": {
+    "message": "Trabajo profundo"
+  },
+  "nuclearTimeLabel180": {
+    "message": "Asedio"
+  },
+  "nuclearTimeLabel240": {
+    "message": "Exterminación"
+  },
+  "nuclearTimeLabel300": {
+    "message": "Invierno nuclear"
+  },
+  "nuclearCountdownTitle": {
+    "message": "Modo nuclear"
+  },
+  "nuclearCountdownExpired": {
+    "message": "Se acabó el tiempo. De vuelta a la acción."
+  },
+  "nuclearCountdownActive": {
+    "message": "Lista bloqueada. Cuenta regresiva en curso."
+  },
+  "nuclearCountdownRemaining": {
+    "message": "Restante: $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "nuclearCountdownDone": {
+    "message": "Listo"
+  },
+  "statsTitle": {
+    "message": "Estadísticas"
+  },
+  "statsTimeOnBlocked": {
+    "message": "TIEMPO EN SITIOS BLOQUEADOS"
+  },
+  "statsToday": {
+    "message": "HOY"
+  },
+  "statsWeeklyTrend": {
+    "message": "TENDENCIA SEMANAL"
+  },
+  "statsEmpty": {
+    "message": "Nada aún"
+  },
+  "statsPerDay": {
+    "message": "/ día"
+  },
+  "statsVsAverage": {
+    "message": "vs. media de 7 días"
+  },
+  "unitMin": {
+    "message": "min"
+  },
+  "blockedTitle": {
+    "message": "Hasta aquí"
+  },
+  "blockedQuote": {
+    "message": "«La vida está en otra parte.»"
+  },
+  "dayMon": {
+    "message": "Lun"
+  },
+  "dayTue": {
+    "message": "Mar"
+  },
+  "dayWed": {
+    "message": "Mié"
+  },
+  "dayThu": {
+    "message": "Jue"
+  },
+  "dayFri": {
+    "message": "Vie"
+  },
+  "daySat": {
+    "message": "Sáb"
+  },
+  "daySun": {
+    "message": "Dom"
+  },
+  "mainListEmpty": {
+    "message": "Vacío. Bloquea tu primer sitio."
+  }
+}

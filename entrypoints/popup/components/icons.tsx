@@ -98,27 +98,6 @@ export function AlertCircleIcon({ className, size = 18 }: IconProps) {
   );
 }
 
-export function InfoIcon({ className, size = 12 }: IconProps) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 12 12"
-      fill="none"
-      className={className}
-    >
-      <circle cx="6" cy="6" r="5.25" stroke="currentColor" strokeWidth="1" />
-      <path
-        d="M6 5v3"
-        stroke="currentColor"
-        strokeWidth="1"
-        strokeLinecap="round"
-      />
-      <circle cx="6" cy="3.75" r="0.6" fill="currentColor" />
-    </svg>
-  );
-}
-
 export function TrashIcon({ className, size = 18 }: IconProps) {
   return (
     <svg

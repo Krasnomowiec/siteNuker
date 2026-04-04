@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { SiteConfig } from '@/shared/types';
 import { HARD_CAP_SECONDS } from '@/shared/constants';
 
@@ -14,7 +15,7 @@ interface SiteRowProps {
   onDelete: (siteId: string) => void;
 }
 
-export function SiteRow({
+export const SiteRow = memo(function SiteRow({
   site,
   usedSeconds,
   isExpanded,
@@ -62,4 +63,4 @@ export function SiteRow({
       onExpand={onToggleExpand}
     />
   );
-}
+});

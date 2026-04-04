@@ -45,10 +45,6 @@
   "siteRowSoftBlocked": {
     "message": "Zablokowane"
   },
-  "siteRowIncreaseLimit": {
-    "message": "Zwiększ limit, aby kontynuować"
-  },
-
   "deleteConfirmTitle": {
     "message": "Usunąć $domain$ z\u00A0listy blokad?",
     "placeholders": {
@@ -137,7 +133,7 @@
     "message": "Czas minął. Wracasz do\u00A0akcji."
   },
   "nuclearCountdownActive": {
-    "message": "Twoja lista stron właśnie zniknęła z\u00A0mapy."
+    "message": "Lista zablokowana. Odliczanie trwa."
   },
   "nuclearCountdownRemaining": {
     "message": "Pozostało: $time$",

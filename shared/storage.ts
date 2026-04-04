@@ -24,14 +24,28 @@ function getDefaultStorage(): StorageSchema {
   };
 }
 
+/** Minimal runtime check that a site entry has required fields */
+function isValidSiteConfig(site: unknown): boolean {
+  if (typeof site !== 'object' || site === null) return false;
+  const s = site as Record<string, unknown>;
+  return (
+    typeof s.id === 'string' &&
+    typeof s.domain === 'string' &&
+    typeof s.dailyLimitMinutes === 'number'
+  );
+}
+
 /** Minimal runtime check that loaded data looks like a StorageSchema */
 function isValidStorageSchema(data: Record<string, unknown>): boolean {
   return (
     typeof data.version === 'number' &&
     typeof data.isEnabled === 'boolean' &&
     Array.isArray(data.sites) &&
+    data.sites.every(isValidSiteConfig) &&
     typeof data.usage === 'object' &&
-    data.usage !== null
+    data.usage !== null &&
+    typeof data.history === 'object' &&
+    data.history !== null
   );
 }
 
@@ -65,7 +79,8 @@ export async function readStorage(): Promise<StorageSchema> {
   let data: Record<string, unknown>;
   try {
     data = await browser.storage.local.get(null);
-  } catch {
+  } catch (err) {
+    console.error('[SitesNuker] Failed to read storage, resetting to defaults:', err);
     const defaults = getDefaultStorage();
     await browser.storage.local.set(defaults);
     return defaults;

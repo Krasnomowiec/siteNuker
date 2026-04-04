@@ -1,0 +1,207 @@
+{
+  "extName": {
+    "message": "SitesNuker"
+  },
+  "extDescription": {
+    "message": "Begrenze deine Zeit auf süchtig machenden Websites. Sperre Seiten nach Erreichen des Tageslimits."
+  },
+  "headerSiteCount": {
+    "message": "$count$/$max$ gesperrt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "max": {
+        "content": "$2"
+      }
+    }
+  },
+  "addSitePlaceholder": {
+    "message": "URL"
+  },
+  "addSiteDailyLimit": {
+    "message": "Tageslimit"
+  },
+  "addSiteErrorInvalid": {
+    "message": "Ungültiger Seitenname"
+  },
+  "addSiteErrorDuplicate": {
+    "message": "Diese Seite ist bereits auf der Liste"
+  },
+  "addSiteErrorAtLimit": {
+    "message": "Limit von $max$ Seiten erreicht",
+    "placeholders": {
+      "max": {
+        "content": "$1"
+      }
+    }
+  },
+  "siteRowDailyLimit": {
+    "message": "Tageslimit"
+  },
+  "siteRowHoldToSave": {
+    "message": "Halten zum Speichern"
+  },
+  "siteRowLimitExhausted": {
+    "message": "Limit erschöpft. Reset um Mitternacht."
+  },
+  "siteRowSoftBlocked": {
+    "message": "Gesperrt"
+  },
+  "deleteConfirmTitle": {
+    "message": "$domain$ von der Sperrliste entfernen?",
+    "placeholders": {
+      "domain": {
+        "content": "$1"
+      }
+    }
+  },
+  "deleteConfirmDescription": {
+    "message": "Ohne Sperre ist diese Seite wieder in Reichweite."
+  },
+  "deleteConfirmRemove": {
+    "message": "Entfernen"
+  },
+  "deleteConfirmKeep": {
+    "message": "Behalten"
+  },
+  "disableConfirmTitle": {
+    "message": "SitesNuker ausschalten?"
+  },
+  "disableConfirmDescription": {
+    "message": "Alle gesperrten Seiten sind dann wieder erreichbar."
+  },
+  "disableConfirmOff": {
+    "message": "Ausschalten"
+  },
+  "disableConfirmKeep": {
+    "message": "Anlassen"
+  },
+  "nuclearTitle": {
+    "message": "Nuklearmodus"
+  },
+  "nuclearDescription": {
+    "message": "Sperrt deine gesamte Liste für eine bestimmte Zeit."
+  },
+  "nuclearEmpty": {
+    "message": "Deine Sperrliste ist leer. Füge eine Seite hinzu, um den Nuklearmodus freizuschalten."
+  },
+  "nuclearActivate": {
+    "message": "Zünden"
+  },
+  "nuclearConfirmTitle": {
+    "message": "$minutes$ Minuten Ruhe",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "nuclearConfirmDescription": {
+    "message": "Nach dem Start gibt es kein Zurück. Alle Seiten auf der Liste werden unerreichbar."
+  },
+  "nuclearConfirmLaunch": {
+    "message": "Zünden"
+  },
+  "nuclearConfirmCancel": {
+    "message": "Rückzug"
+  },
+  "nuclearTimeLabel5": {
+    "message": "Blitzaktion"
+  },
+  "nuclearTimeLabel15": {
+    "message": "Standard"
+  },
+  "nuclearTimeLabel30": {
+    "message": "Taktisch"
+  },
+  "nuclearTimeLabel60": {
+    "message": "Volle Stunde"
+  },
+  "nuclearTimeLabel120": {
+    "message": "Tiefenarbeit"
+  },
+  "nuclearTimeLabel180": {
+    "message": "Belagerung"
+  },
+  "nuclearTimeLabel240": {
+    "message": "Vernichtung"
+  },
+  "nuclearTimeLabel300": {
+    "message": "Nuklearer Winter"
+  },
+  "nuclearCountdownTitle": {
+    "message": "Nuklearmodus"
+  },
+  "nuclearCountdownExpired": {
+    "message": "Zeit abgelaufen. Zurück zur Tat."
+  },
+  "nuclearCountdownActive": {
+    "message": "Liste blockiert. Countdown läuft."
+  },
+  "nuclearCountdownRemaining": {
+    "message": "Verbleibend: $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "nuclearCountdownDone": {
+    "message": "Fertig"
+  },
+  "statsTitle": {
+    "message": "Statistiken"
+  },
+  "statsTimeOnBlocked": {
+    "message": "ZEIT AUF GESPERRTEN SEITEN"
+  },
+  "statsToday": {
+    "message": "HEUTE"
+  },
+  "statsWeeklyTrend": {
+    "message": "WOCHENTREND"
+  },
+  "statsEmpty": {
+    "message": "Noch nichts hier"
+  },
+  "statsPerDay": {
+    "message": "/ Tag"
+  },
+  "statsVsAverage": {
+    "message": "vs. 7-Tage-Durchschnitt"
+  },
+  "unitMin": {
+    "message": "Min"
+  },
+  "blockedTitle": {
+    "message": "Schluss jetzt"
+  },
+  "blockedQuote": {
+    "message": "„Das Leben ist woanders.“"
+  },
+  "dayMon": {
+    "message": "Mo"
+  },
+  "dayTue": {
+    "message": "Di"
+  },
+  "dayWed": {
+    "message": "Mi"
+  },
+  "dayThu": {
+    "message": "Do"
+  },
+  "dayFri": {
+    "message": "Fr"
+  },
+  "daySat": {
+    "message": "Sa"
+  },
+  "daySun": {
+    "message": "So"
+  },
+  "mainListEmpty": {
+    "message": "Leer. Sperre deine erste Seite."
+  }
+}

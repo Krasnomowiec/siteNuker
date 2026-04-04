@@ -45,10 +45,6 @@
   "siteRowSoftBlocked": {
     "message": "Blocked"
   },
-  "siteRowIncreaseLimit": {
-    "message": "Increase limit to continue"
-  },
-
   "deleteConfirmTitle": {
     "message": "Remove $domain$ from block list?",
     "placeholders": {
@@ -137,7 +133,7 @@
     "message": "Time's up. Back to action."
   },
   "nuclearCountdownActive": {
-    "message": "Your site list just vanished from the map."
+    "message": "List blocked. Countdown in progress."
   },
   "nuclearCountdownRemaining": {
     "message": "Remaining: $time$",

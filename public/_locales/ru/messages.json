@@ -1,0 +1,207 @@
+{
+  "extName": {
+    "message": "SitesNuker"
+  },
+  "extDescription": {
+    "message": "Ограничь время на затягивающих сайтах. Блокируй сайты при превышении дневного лимита."
+  },
+  "headerSiteCount": {
+    "message": "$count$/$max$ заблокировано",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "max": {
+        "content": "$2"
+      }
+    }
+  },
+  "addSitePlaceholder": {
+    "message": "URL"
+  },
+  "addSiteDailyLimit": {
+    "message": "Дневной лимит"
+  },
+  "addSiteErrorInvalid": {
+    "message": "Некорректное имя сайта"
+  },
+  "addSiteErrorDuplicate": {
+    "message": "Этот сайт уже в списке"
+  },
+  "addSiteErrorAtLimit": {
+    "message": "Достигнут лимит в $max$ сайтов",
+    "placeholders": {
+      "max": {
+        "content": "$1"
+      }
+    }
+  },
+  "siteRowDailyLimit": {
+    "message": "Дневной лимит"
+  },
+  "siteRowHoldToSave": {
+    "message": "Удерживай для сохранения"
+  },
+  "siteRowLimitExhausted": {
+    "message": "Лимит исчерпан. Сброс в полночь."
+  },
+  "siteRowSoftBlocked": {
+    "message": "Заблокировано"
+  },
+  "deleteConfirmTitle": {
+    "message": "Удалить $domain$ из списка блокировок?",
+    "placeholders": {
+      "domain": {
+        "content": "$1"
+      }
+    }
+  },
+  "deleteConfirmDescription": {
+    "message": "Без блокировки этот сайт снова будет на расстоянии клика."
+  },
+  "deleteConfirmRemove": {
+    "message": "Удалить"
+  },
+  "deleteConfirmKeep": {
+    "message": "Оставить"
+  },
+  "disableConfirmTitle": {
+    "message": "Выключить SitesNuker?"
+  },
+  "disableConfirmDescription": {
+    "message": "Все заблокированные сайты снова будут доступны."
+  },
+  "disableConfirmOff": {
+    "message": "Выключить"
+  },
+  "disableConfirmKeep": {
+    "message": "Не выключать"
+  },
+  "nuclearTitle": {
+    "message": "Ядерный режим"
+  },
+  "nuclearDescription": {
+    "message": "Блокирует весь список на определённое время."
+  },
+  "nuclearEmpty": {
+    "message": "Список блокировок пуст. Добавь сайт, чтобы разблокировать ядерный режим."
+  },
+  "nuclearActivate": {
+    "message": "Запуск"
+  },
+  "nuclearConfirmTitle": {
+    "message": "$minutes$ минут покоя",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "nuclearConfirmDescription": {
+    "message": "После запуска пути назад нет. Все сайты из списка станут недоступны."
+  },
+  "nuclearConfirmLaunch": {
+    "message": "Запуск"
+  },
+  "nuclearConfirmCancel": {
+    "message": "Отступить"
+  },
+  "nuclearTimeLabel5": {
+    "message": "Блиц"
+  },
+  "nuclearTimeLabel15": {
+    "message": "Стандарт"
+  },
+  "nuclearTimeLabel30": {
+    "message": "Тактика"
+  },
+  "nuclearTimeLabel60": {
+    "message": "Целый час"
+  },
+  "nuclearTimeLabel120": {
+    "message": "Глубокая работа"
+  },
+  "nuclearTimeLabel180": {
+    "message": "Осада"
+  },
+  "nuclearTimeLabel240": {
+    "message": "Уничтожение"
+  },
+  "nuclearTimeLabel300": {
+    "message": "Ядерная зима"
+  },
+  "nuclearCountdownTitle": {
+    "message": "Ядерный режим"
+  },
+  "nuclearCountdownExpired": {
+    "message": "Время вышло. Назад к делу."
+  },
+  "nuclearCountdownActive": {
+    "message": "Список заблокирован. Отсчёт идёт."
+  },
+  "nuclearCountdownRemaining": {
+    "message": "Осталось: $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "nuclearCountdownDone": {
+    "message": "Готово"
+  },
+  "statsTitle": {
+    "message": "Статистика"
+  },
+  "statsTimeOnBlocked": {
+    "message": "ВРЕМЯ НА ЗАБЛОКИРОВАННЫХ САЙТАХ"
+  },
+  "statsToday": {
+    "message": "СЕГОДНЯ"
+  },
+  "statsWeeklyTrend": {
+    "message": "НЕДЕЛЬНЫЙ ТРЕНД"
+  },
+  "statsEmpty": {
+    "message": "Пока ничего нет"
+  },
+  "statsPerDay": {
+    "message": "/ день"
+  },
+  "statsVsAverage": {
+    "message": "vs. среднее за 7 дней"
+  },
+  "unitMin": {
+    "message": "мин"
+  },
+  "blockedTitle": {
+    "message": "На этом всё"
+  },
+  "blockedQuote": {
+    "message": "«Жизнь где-то в другом месте.»"
+  },
+  "dayMon": {
+    "message": "Пн"
+  },
+  "dayTue": {
+    "message": "Вт"
+  },
+  "dayWed": {
+    "message": "Ср"
+  },
+  "dayThu": {
+    "message": "Чт"
+  },
+  "dayFri": {
+    "message": "Пт"
+  },
+  "daySat": {
+    "message": "Сб"
+  },
+  "daySun": {
+    "message": "Вс"
+  },
+  "mainListEmpty": {
+    "message": "Пусто. Заблокируй первый сайт."
+  }
+}

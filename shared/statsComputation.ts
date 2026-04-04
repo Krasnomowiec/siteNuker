@@ -1,7 +1,5 @@
 import type { StorageSchema, DailyUsage, SiteConfig } from './types';
 import {
-  DEFAULT_SESSION_MINUTES,
-  FALLBACK_SESSION_MINUTES,
   USAGE_TIER_AMBER,
   USAGE_TIER_RED_SOFT,
   DAY_LABEL_KEYS,
@@ -43,14 +41,8 @@ export interface NorthStarStats {
   changeDirection: 'down' | 'up' | 'none' | null;
 }
 
-export interface HeroStats {
-  reclaimedMinutes: number;
-  totalBlockedAttempts: number;
-}
-
 export interface AllStats {
   northStar: NorthStarStats;
-  hero: HeroStats;
   todayBars: SiteUsageBar[];
   totalTodayMinutes: number;
   weeklyTrend: WeeklyTrend;
@@ -134,30 +126,6 @@ function computeNorthStar(
     percentChange,
     changeDirection,
   };
-}
-
-/* ── Time Reclaimed (minutes saved by blocks today) ── */
-
-function computeTimeReclaimed(usage: Record<string, DailyUsage>): {
-  reclaimedMinutes: number;
-  totalBlockedAttempts: number;
-} {
-  const todayKey = getTodayKey();
-  const todayUsage = usage[todayKey] ?? {};
-  let totalMinutes = 0;
-  let totalBlocked = 0;
-
-  for (const domain of Object.keys(todayUsage)) {
-    const entry = todayUsage[domain];
-    if (!entry || entry.blockedAttempts <= 0) continue;
-
-    totalBlocked += entry.blockedAttempts;
-    const sessionEstimate =
-      DEFAULT_SESSION_MINUTES[domain] ?? FALLBACK_SESSION_MINUTES;
-    totalMinutes += entry.blockedAttempts * sessionEstimate;
-  }
-
-  return { reclaimedMinutes: totalMinutes, totalBlockedAttempts: totalBlocked };
 }
 
 /* ── Today's Usage Bars ── */
@@ -286,14 +254,8 @@ export function computeAllStats(storage: StorageSchema): AllStats {
     (sum, bar) => sum + Math.round(bar.usedSeconds / 60),
     0,
   );
-  const reclaimed = computeTimeReclaimed(storage.usage);
-
   return {
     northStar: computeNorthStar(storage.usage, storage.history),
-    hero: {
-      reclaimedMinutes: reclaimed.reclaimedMinutes,
-      totalBlockedAttempts: reclaimed.totalBlockedAttempts,
-    },
     todayBars,
     totalTodayMinutes,
     weeklyTrend: computeWeeklyTrend(storage.usage, storage.history),

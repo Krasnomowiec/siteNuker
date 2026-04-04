@@ -31,7 +31,7 @@ export default function App() {
     return (
       <div
         className="bg-bg-primary flex items-center justify-center"
-        style={{ width: POPUP_WIDTH, height: 200 }}
+        style={{ width: POPUP_WIDTH, height: POPUP_MAX_HEIGHT }}
       >
         <div className="w-6 h-6 sn-gradient-cta rounded-sm animate-pulse" />
       </div>
@@ -59,7 +59,7 @@ export default function App() {
   if (nuclearActive && storage.nuclearMode) {
     return (
       <div
-        className="bg-bg-primary text-text-primary font-sans flex flex-col"
+        className="bg-bg-primary text-text-primary font-sans flex flex-col animate-popup-enter"
         style={{ width: POPUP_WIDTH, height: POPUP_MAX_HEIGHT }}
       >
         <NuclearCountdown
@@ -72,7 +72,7 @@ export default function App() {
 
   return (
     <div
-      className="bg-bg-primary text-text-primary font-sans flex flex-col relative"
+      className="bg-bg-primary text-text-primary font-sans flex flex-col relative animate-popup-enter"
       style={{ width: POPUP_WIDTH, height: POPUP_MAX_HEIGHT }}
     >
       {page !== 'nuclear' && page !== 'statistics' && (
@@ -81,7 +81,11 @@ export default function App() {
           isEnabled={storage.isEnabled}
           onToggle={() => {
             if (storage.isEnabled) {
-              setShowDisableConfirm(true);
+              if (storage.sites.length > 0) {
+                setShowDisableConfirm(true);
+              } else {
+                setEnabled(false);
+              }
             } else {
               setEnabled(true);
             }

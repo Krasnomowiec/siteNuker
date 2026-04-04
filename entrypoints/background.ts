@@ -436,23 +436,34 @@ export default defineBackground(() => {
 
   // --- Main tick ---
 
+  let tickInProgress = false;
+
   setInterval(() => {
     if (!cachedStorage || !cachedStorage.isEnabled) return;
+    if (tickInProgress) return;
     tickCount++;
+
+    tickInProgress = true;
 
     checkNuclearExpiry();
 
-    if (trackedSessions.size > 0) {
-      checkAndBlockAll().catch(() => {});
-    }
+    (async () => {
+      if (trackedSessions.size > 0) {
+        await checkAndBlockAll();
+      }
 
-    if (tickCount % FLUSH_INTERVAL_TICKS === 0) {
-      flushAllUsage().catch(() => {});
-    }
+      if (tickCount % FLUSH_INTERVAL_TICKS === 0) {
+        await flushAllUsage();
+      }
 
-    if (tickCount % DATE_CHECK_INTERVAL_TICKS === 0) {
-      checkDateRollover().catch(() => {});
-    }
+      if (tickCount % DATE_CHECK_INTERVAL_TICKS === 0) {
+        await checkDateRollover();
+      }
+    })()
+      .catch((err) => console.error('[SitesNuker] Tick error:', err))
+      .finally(() => {
+        tickInProgress = false;
+      });
   }, 1000);
 
   // --- Event listeners ---
@@ -702,15 +713,20 @@ export default defineBackground(() => {
         const blocked = matchedSite
           ? blockedDomains.has(matchedSite.domain)
           : false;
+        const nuclearExpiry = cachedStorage?.nuclearMode
+          ? new Date(cachedStorage.nuclearMode.expiresAt).getTime()
+          : NaN;
         const nuclear =
           matchedSite != null &&
-          cachedStorage?.nuclearMode != null &&
-          new Date(cachedStorage.nuclearMode.expiresAt).getTime() >
-            Date.now();
+          !isNaN(nuclearExpiry) &&
+          nuclearExpiry > Date.now();
         return { blocked: blocked || nuclear };
       });
     }
 
+    if (message?.type) {
+      console.warn('[SitesNuker] Unknown message type:', message.type);
+    }
     return undefined;
   });
 

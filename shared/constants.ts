@@ -44,21 +44,6 @@ export const MAX_SITES = 20;
 export const POPUP_WIDTH = 380;
 export const POPUP_MAX_HEIGHT = 580;
 
-/** Estimated average session duration per domain (minutes) — for "saved time" calculation */
-export const DEFAULT_SESSION_MINUTES: Record<string, number> = {
-  'youtube.com': 12,
-  'tiktok.com': 10,
-  'twitch.tv': 15,
-  'reddit.com': 8,
-  'twitter.com': 7,
-  'facebook.com': 8,
-  'instagram.com': 7,
-  'snapchat.com': 5,
-};
-
-/** Fallback session duration for domains not in DEFAULT_SESSION_MINUTES */
-export const FALLBACK_SESSION_MINUTES = 7;
-
 /** Usage ratio thresholds for progress bar color tiers */
 export const USAGE_TIER_AMBER = 0.6;
 export const USAGE_TIER_RED_SOFT = 0.85;

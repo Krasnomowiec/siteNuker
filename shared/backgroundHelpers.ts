@@ -51,12 +51,21 @@ export interface WriteLockHandle {
 /**
  * Promise-based mutex that serializes async storage writes
  * to prevent lost updates from concurrent operations.
+ * Includes a safety timeout to prevent deadlocks.
  */
-export function createWriteLock(): WriteLockHandle {
+export function createWriteLock(timeoutMs: number = 10_000): WriteLockHandle {
   let lock: Promise<void> | null = null;
 
   async function withLock<T>(fn: () => Promise<T>): Promise<T> {
-    while (lock) await lock;
+    const deadline = Date.now() + timeoutMs;
+    while (lock) {
+      if (Date.now() > deadline) {
+        console.error('[SitesNuker] Write lock timeout — forcing release');
+        lock = null;
+        break;
+      }
+      await lock;
+    }
     let unlock: () => void;
     lock = new Promise<void>((resolve) => {
       unlock = resolve;

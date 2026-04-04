@@ -39,7 +39,7 @@ export default defineConfig({
     host_permissions: ['<all_urls>'],
     browser_specific_settings: {
       gecko: {
-        id: 'sitesnuker@example.com',
+        id: '{40a9fb2d-132d-4dae-b201-f290bd2def5b}',
         strict_min_version: '109.0',
       },
     },

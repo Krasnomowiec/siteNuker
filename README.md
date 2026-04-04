@@ -9,7 +9,9 @@ Browser extension that limits your daily time on addictive websites. Set per-sit
 - **Nuclear mode** — block ALL tracked sites for a chosen duration (5 min – 5 hours)
 - **Usage statistics** — daily average, weekly trends, per-site breakdowns
 - **History tracking** — 30-day rolling archive of usage data
-- **i18n** — English and Polish UI
+- **Error boundary** — graceful error recovery in the popup UI
+- **Privacy policy** — bundled in `docs/` for AMO submission
+- **i18n** — English, Polish, German, Spanish, and Russian
 
 ## Tech Stack
 
@@ -48,14 +50,17 @@ npm run zip
 ## Project Structure
 
 ```
+docs/
+  privacy.md           — privacy policy for AMO submission
 entrypoints/
   background.ts        — persistent background script (timers, blocking, storage)
   content.ts           — content script (block overlay on tracked pages)
   blocked/             — full-page block screen
   popup/
     App.tsx            — popup root with page routing
+    __tests__/         — popup component tests
     pages/             — MainList, NuclearSetup, NuclearCountdown, Statistics
-    components/        — Header, AddSiteBar, SiteRow, Slider, stats charts
+    components/        — Header, AddSiteBar, SiteRow, Slider, ErrorBoundary, stats charts
     hooks/             — useStorage, useActiveDomain
 shared/
   types.ts             — StorageSchema, SiteConfig, DomainUsage, etc.
@@ -65,8 +70,9 @@ shared/
   storage.ts           — read/write/migrate storage
   statsComputation.ts  — statistics calculations
   i18n.ts              — internationalization helper
+  __tests__/           — shared module tests
 public/
-  _locales/            — en, pl message catalogs
+  _locales/            — en, pl, de, es, ru message catalogs
   icon/                — extension icons (16–128px)
   rules/               — declarativeNetRequest static rules
 ```

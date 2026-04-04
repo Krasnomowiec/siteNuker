@@ -13,6 +13,10 @@ const STROKE_WIDTH = 10;
 const SVG_SIZE = (RING_RADIUS + STROKE_WIDTH) * 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
+const BLOOM_DELAY_MS = 0;
+const SETTLE_DELAY_MS = 800;
+const COMPLETE_DELAY_MS = 2800;
+
 export function NuclearCountdown({
   nuclearMode,
   onComplete,
@@ -56,9 +60,9 @@ export function NuclearCountdown({
     if (!isComplete || completionPhase !== 'none') return;
 
     // Defer setState to avoid synchronous update in effect body
-    const bloomTimeout = setTimeout(() => setCompletionPhase('bloom'), 0);
-    const settleTimeout = setTimeout(() => setCompletionPhase('settle'), 800);
-    const completeTimeout = setTimeout(onComplete, 2800);
+    const bloomTimeout = setTimeout(() => setCompletionPhase('bloom'), BLOOM_DELAY_MS);
+    const settleTimeout = setTimeout(() => setCompletionPhase('settle'), SETTLE_DELAY_MS);
+    const completeTimeout = setTimeout(onComplete, COMPLETE_DELAY_MS);
 
     return () => {
       clearTimeout(bloomTimeout);

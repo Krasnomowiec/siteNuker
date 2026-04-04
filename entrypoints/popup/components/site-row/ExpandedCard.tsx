@@ -94,12 +94,6 @@ export function ExpandedCard({
 
       {/* Bottom — limit controls */}
       <div className="px-4 pb-4 space-y-4">
-        {isSoftLocked && (
-          <p className="text-xs text-text-tertiary">
-            {t('siteRowIncreaseLimit')}
-          </p>
-        )}
-
         <div className="flex items-center gap-3">
           <span className="text-xs text-text-tertiary shrink-0">
             {t('siteRowDailyLimit')}
