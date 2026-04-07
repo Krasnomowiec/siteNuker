@@ -100,7 +100,7 @@ export async function readStorage(): Promise<StorageSchema> {
   return data as unknown as StorageSchema;
 }
 
-/** Write partial storage update */
+/** Write partial storage update — throws on failure so callers can react */
 export async function writeStorage(
   partial: Partial<StorageSchema>,
 ): Promise<void> {
@@ -108,6 +108,7 @@ export async function writeStorage(
     await browser.storage.local.set(partial);
   } catch (error) {
     console.error('[storage] Write failed (quota exceeded?):', error);
+    throw error;
   }
 }
 

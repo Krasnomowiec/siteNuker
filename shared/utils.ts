@@ -105,8 +105,9 @@ export function findMatchingSite<T extends { domain: string }>(
 /** Short format for chart labels: "42m", "1h 42m" */
 export function formatMinutesShort(minutes: number): string {
   if (minutes <= 0) return '0m';
-  const h = Math.floor(minutes / 60);
-  const m = Math.round(minutes % 60);
+  const totalRounded = Math.round(minutes);
+  const h = Math.floor(totalRounded / 60);
+  const m = totalRounded % 60;
   if (h > 0 && m > 0) return `${h}h ${m}m`;
   if (h > 0) return `${h}h`;
   return `${m}m`;

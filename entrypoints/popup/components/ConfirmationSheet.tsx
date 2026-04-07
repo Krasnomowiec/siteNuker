@@ -24,7 +24,7 @@ export function ConfirmationSheet({
         <h2 className="text-header font-headline font-bold text-text-primary leading-snug">
           {title}
         </h2>
-        <p className="text-secondary text-text-secondary">{description}</p>
+        <p className="text-[0.875rem] text-text-secondary">{description}</p>
       </div>
 
       <div className="flex items-center gap-3">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   DOMAIN_ALIASES,
   DEFAULT_LIMIT_MINUTES,
@@ -7,7 +7,6 @@ import {
 import { extractDomain } from '@/shared/utils';
 import { t } from '@/shared/i18n';
 import { AlertCircleIcon } from './icons';
-import { Slider } from './Slider';
 
 interface AddSiteBarProps {
   existingDomains: string[];
@@ -16,10 +15,11 @@ interface AddSiteBarProps {
 
 export function AddSiteBar({ existingDomains, onAdd }: AddSiteBarProps) {
   const [domain, setDomain] = useState('');
-  const [limit, setLimit] = useState(DEFAULT_LIMIT_MINUTES);
   const [showError, setShowError] = useState(false);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
+    if (initializedRef.current) return;
     browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
       if (tab?.url) {
         try {
@@ -32,6 +32,7 @@ export function AddSiteBar({ existingDomains, onAdd }: AddSiteBarProps) {
           /* ignore about:, chrome:, moz-extension: URLs */
         }
       }
+      initializedRef.current = true;
     });
   }, [existingDomains]);
 
@@ -48,9 +49,8 @@ export function AddSiteBar({ existingDomains, onAdd }: AddSiteBarProps) {
       setShowError(true);
       return;
     }
-    onAdd(extracted, limit);
+    onAdd(extracted, DEFAULT_LIMIT_MINUTES);
     setDomain('');
-    setLimit(DEFAULT_LIMIT_MINUTES);
     setShowError(false);
   }
 
@@ -65,7 +65,7 @@ export function AddSiteBar({ existingDomains, onAdd }: AddSiteBarProps) {
             setShowError(false);
           }}
           placeholder={t('addSitePlaceholder')}
-          className="flex-1 h-[42px] bg-bg-primary text-text-primary font-headline text-secondary rounded-sm px-3 placeholder:text-text-tertiary/50 outline-none border-none text-left"
+          className="flex-1 h-[42px] bg-bg-primary text-text-primary font-headline text-[0.875rem] rounded-sm px-3 placeholder:text-text-tertiary/50 outline-none border-none text-left"
         />
         <button
           type="button"
@@ -75,8 +75,8 @@ export function AddSiteBar({ existingDomains, onAdd }: AddSiteBarProps) {
             h-[42px] w-[42px] rounded-sm grid place-items-center transition-colors
             ${
               trimmed.length > 0
-                ? 'sn-gradient-cta text-[#690005] cursor-pointer active:scale-95'
-                : 'bg-bg-tertiary text-text-tertiary cursor-not-allowed border border-bg-elevated'
+                ? 'sn-gradient-cta text-[#690005] cursor-pointer active:scale-[0.97]'
+                : 'bg-bg-tertiary text-text-tertiary cursor-not-allowed'
             }
           `}
         >
@@ -102,17 +102,6 @@ export function AddSiteBar({ existingDomains, onAdd }: AddSiteBarProps) {
           {t('addSiteErrorAtLimit', String(MAX_SITES))}
         </p>
       )}
-
-      {/* Limit slider */}
-      <div className="mt-3 flex items-center gap-3">
-        <span className="text-xs text-text-tertiary shrink-0">
-          {t('addSiteDailyLimit')}
-        </span>
-        <Slider value={limit} onChange={setLimit} />
-        <span className="text-xs text-text-tertiary shrink-0 min-w-10 text-right">
-          {limit} {t('unitMin')}
-        </span>
-      </div>
     </div>
   );
 }

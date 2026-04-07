@@ -6,7 +6,7 @@
     "message": "Limita tu tiempo en sitios adictivos. Bloquea sitios al alcanzar el límite diario."
   },
   "headerSiteCount": {
-    "message": "$count$/$max$ bloqueados",
+    "message": "$count$/$max$ sitios en la lista",
     "placeholders": {
       "count": {
         "content": "$1"
@@ -17,7 +17,7 @@
     }
   },
   "addSitePlaceholder": {
-    "message": "URL"
+    "message": "Ingresa URL"
   },
   "addSiteDailyLimit": {
     "message": "Límite diario"
@@ -36,17 +36,56 @@
       }
     }
   },
-  "siteRowDailyLimit": {
-    "message": "Límite diario"
-  },
-  "siteRowHoldToSave": {
-    "message": "Mantén para guardar"
-  },
-  "siteRowLimitExhausted": {
-    "message": "Límite agotado. Se reinicia a medianoche."
+  "siteRowUnlocksIn": {
+    "message": "Desbloqueo en $time$",
+    "placeholders": {
+      "time": { "content": "$1" }
+    }
   },
   "siteRowSoftBlocked": {
     "message": "Bloqueado"
+  },
+  "siteRowTimeUsedUp": {
+    "message": "Se acabó el tiempo"
+  },
+  "progressUsed": {
+    "message": "Usado"
+  },
+  "progressRemaining": {
+    "message": "Restante"
+  },
+  "progressLimit": {
+    "message": "Límite diario"
+  },
+  "extendFiveMin": {
+    "message": "+5 min"
+  },
+  "reduceFiveMin": {
+    "message": "-5 min"
+  },
+  "extendMaxReached": {
+    "message": "Máx"
+  },
+  "blockNowConfirmTitle": {
+    "message": "¿Bloquear $domain$ hasta mañana?",
+    "placeholders": {
+      "domain": { "content": "$1" }
+    }
+  },
+  "blockNowConfirmDescription": {
+    "message": "Este sitio estará completamente bloqueado hasta medianoche."
+  },
+  "blockNowConfirmBlock": {
+    "message": "Bloquear"
+  },
+  "blockNowConfirmCancel": {
+    "message": "Cancelar"
+  },
+  "menuDeleteAction": {
+    "message": "Eliminar de la lista"
+  },
+  "menuBlockAction": {
+    "message": "Bloquear hasta mañana"
   },
   "deleteConfirmTitle": {
     "message": "¿Eliminar $domain$ de la lista de bloqueo?",

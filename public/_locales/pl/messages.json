@@ -7,7 +7,7 @@
   },
 
   "headerSiteCount": {
-    "message": "$count$/$max$ zablokowanych",
+    "message": "$count$/$max$ stron na\u00A0liście",
     "placeholders": {
       "count": { "content": "$1" },
       "max": { "content": "$2" }
@@ -33,17 +33,56 @@
     }
   },
 
-  "siteRowDailyLimit": {
-    "message": "Limit dzienny"
-  },
-  "siteRowHoldToSave": {
-    "message": "Przytrzymaj i\u00A0zapisz"
-  },
-  "siteRowLimitExhausted": {
-    "message": "Limit wyczerpany. Reset o\u00A0północy."
+  "siteRowUnlocksIn": {
+    "message": "Odblokowanie za\u00A0$time$",
+    "placeholders": {
+      "time": { "content": "$1" }
+    }
   },
   "siteRowSoftBlocked": {
-    "message": "Zablokowane"
+    "message": "Zablokowano"
+  },
+  "siteRowTimeUsedUp": {
+    "message": "Po czasie"
+  },
+  "progressUsed": {
+    "message": "Wykorzystano"
+  },
+  "progressRemaining": {
+    "message": "Pozostało"
+  },
+  "progressLimit": {
+    "message": "Limit dzienny"
+  },
+  "extendFiveMin": {
+    "message": "+5 min"
+  },
+  "reduceFiveMin": {
+    "message": "-5 min"
+  },
+  "extendMaxReached": {
+    "message": "Max"
+  },
+  "blockNowConfirmTitle": {
+    "message": "Zablokować $domain$ do\u00A0jutra?",
+    "placeholders": {
+      "domain": { "content": "$1" }
+    }
+  },
+  "blockNowConfirmDescription": {
+    "message": "Ta strona będzie całkowicie zablokowana do\u00A0północy."
+  },
+  "blockNowConfirmBlock": {
+    "message": "Zablokuj"
+  },
+  "blockNowConfirmCancel": {
+    "message": "Anuluj"
+  },
+  "menuDeleteAction": {
+    "message": "Usuń z\u00A0listy"
+  },
+  "menuBlockAction": {
+    "message": "Zablokuj do\u00A0jutra"
   },
   "deleteConfirmTitle": {
     "message": "Usunąć $domain$ z\u00A0listy blokad?",

@@ -9,21 +9,25 @@ import { LockedCard } from './LockedCard';
 interface SiteRowProps {
   site: SiteConfig;
   usedSeconds: number;
+  isManuallyBlocked: boolean;
   isExpanded: boolean;
-  onToggleExpand: () => void;
-  onSave: (siteId: string, newLimit: number) => void;
-  onDelete: (siteId: string) => void;
+  onToggleExpand: (siteId: string) => void;
+  onExtend: (siteId: string) => void;
+  onReduce: (siteId: string) => void;
+  onMenu: (siteId: string) => void;
 }
 
 export const SiteRow = memo(function SiteRow({
   site,
   usedSeconds,
+  isManuallyBlocked,
   isExpanded,
   onToggleExpand,
-  onSave,
-  onDelete,
+  onExtend,
+  onReduce,
+  onMenu,
 }: SiteRowProps) {
-  const isHardLocked = usedSeconds >= HARD_CAP_SECONDS;
+  const isHardLocked = usedSeconds >= HARD_CAP_SECONDS || isManuallyBlocked;
   const isSoftLocked =
     !isHardLocked && usedSeconds >= site.dailyLimitMinutes * 60;
 
@@ -31,27 +35,16 @@ export const SiteRow = memo(function SiteRow({
     return <LockedCard site={site} />;
   }
 
-  if (isSoftLocked) {
-    return (
-      <ExpandedCard
-        site={site}
-        usedSeconds={usedSeconds}
-        onCollapse={() => {}}
-        onSave={(newLimit) => onSave(site.id, newLimit)}
-        onDelete={() => onDelete(site.id)}
-        isSoftLocked
-      />
-    );
-  }
-
   if (isExpanded) {
     return (
       <ExpandedCard
         site={site}
         usedSeconds={usedSeconds}
-        onCollapse={onToggleExpand}
-        onSave={(newLimit) => onSave(site.id, newLimit)}
-        onDelete={() => onDelete(site.id)}
+        onCollapse={() => onToggleExpand(site.id)}
+        onExtend={() => onExtend(site.id)}
+        onReduce={() => onReduce(site.id)}
+        onMenu={() => onMenu(site.id)}
+        isSoftLocked={isSoftLocked}
       />
     );
   }
@@ -60,7 +53,8 @@ export const SiteRow = memo(function SiteRow({
     <CollapsedCard
       site={site}
       usedSeconds={usedSeconds}
-      onExpand={onToggleExpand}
+      onExpand={() => onToggleExpand(site.id)}
+      isSoftLocked={isSoftLocked}
     />
   );
 });

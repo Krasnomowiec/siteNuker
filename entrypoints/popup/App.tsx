@@ -1,7 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { POPUP_WIDTH, POPUP_MAX_HEIGHT } from '@/shared/constants';
 import { t } from '@/shared/i18n';
-import { writeStorage } from '@/shared/storage';
 import { useStorage } from './hooks/useStorage';
 import { Header } from './components/Header';
 import type { Page } from './components/Header';
@@ -21,11 +20,21 @@ export default function App() {
   const { storage, loading, setEnabled } = useStorage();
   const [page, setPage] = useState<Page>('main');
   const [showDisableConfirm, setShowDisableConfirm] = useState(false);
+  const [nuclearDismissed, setNuclearDismissed] = useState(false);
 
   const nuclearActive = useMemo(
-    () => isNuclearActive(storage?.nuclearMode?.expiresAt),
-    [storage?.nuclearMode?.expiresAt],
+    () => !nuclearDismissed && isNuclearActive(storage?.nuclearMode?.expiresAt),
+    [storage?.nuclearMode?.expiresAt, nuclearDismissed],
   );
+
+  const handleNuclearComplete = useCallback(async () => {
+    setNuclearDismissed(true);
+    try {
+      await browser.runtime.sendMessage({ type: 'clearNuclearMode' });
+    } catch (err) {
+      console.error('[SitesNuker] handleNuclearComplete failed:', err);
+    }
+  }, []);
 
   if (loading || !storage) {
     return (
@@ -39,21 +48,16 @@ export default function App() {
   }
 
   async function handleNuclearActivate(durationMinutes: number) {
-    const now = new Date();
-    await writeStorage({
-      nuclearMode: {
-        activatedAt: now.toISOString(),
+    setNuclearDismissed(false);
+    try {
+      await browser.runtime.sendMessage({
+        type: 'activateNuclear',
         durationMinutes,
-        expiresAt: new Date(
-          now.getTime() + durationMinutes * 60 * 1000,
-        ).toISOString(),
-      },
-    });
+      });
+    } catch (err) {
+      console.error('[SitesNuker] handleNuclearActivate failed:', err);
+    }
     setPage('main');
-  }
-
-  async function handleNuclearComplete() {
-    await writeStorage({ nuclearMode: null });
   }
 
   if (nuclearActive && storage.nuclearMode) {
@@ -77,7 +81,6 @@ export default function App() {
     >
       {page !== 'nuclear' && page !== 'statistics' && (
         <Header
-          siteCount={storage.sites.length}
           isEnabled={storage.isEnabled}
           onToggle={() => {
             if (storage.isEnabled) {

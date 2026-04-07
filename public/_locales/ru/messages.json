@@ -6,7 +6,7 @@
     "message": "Ограничь время на затягивающих сайтах. Блокируй сайты при превышении дневного лимита."
   },
   "headerSiteCount": {
-    "message": "$count$/$max$ заблокировано",
+    "message": "$count$/$max$ сайтов в\u00A0списке",
     "placeholders": {
       "count": {
         "content": "$1"
@@ -17,7 +17,7 @@
     }
   },
   "addSitePlaceholder": {
-    "message": "URL"
+    "message": "Введите URL"
   },
   "addSiteDailyLimit": {
     "message": "Дневной лимит"
@@ -26,30 +26,69 @@
     "message": "Некорректное имя сайта"
   },
   "addSiteErrorDuplicate": {
-    "message": "Этот сайт уже в списке"
+    "message": "Этот сайт уже в списке"
   },
   "addSiteErrorAtLimit": {
-    "message": "Достигнут лимит в $max$ сайтов",
+    "message": "Достигнут лимит в $max$ сайтов",
     "placeholders": {
       "max": {
         "content": "$1"
       }
     }
   },
-  "siteRowDailyLimit": {
-    "message": "Дневной лимит"
-  },
-  "siteRowHoldToSave": {
-    "message": "Удерживай для сохранения"
-  },
-  "siteRowLimitExhausted": {
-    "message": "Лимит исчерпан. Сброс в полночь."
+  "siteRowUnlocksIn": {
+    "message": "Разблокировка через $time$",
+    "placeholders": {
+      "time": { "content": "$1" }
+    }
   },
   "siteRowSoftBlocked": {
     "message": "Заблокировано"
   },
+  "siteRowTimeUsedUp": {
+    "message": "Время вышло"
+  },
+  "progressUsed": {
+    "message": "Использовано"
+  },
+  "progressRemaining": {
+    "message": "Осталось"
+  },
+  "progressLimit": {
+    "message": "Дневной лимит"
+  },
+  "extendFiveMin": {
+    "message": "+5 мин"
+  },
+  "reduceFiveMin": {
+    "message": "-5 мин"
+  },
+  "extendMaxReached": {
+    "message": "Макс"
+  },
+  "blockNowConfirmTitle": {
+    "message": "Заблокировать $domain$ до завтра?",
+    "placeholders": {
+      "domain": { "content": "$1" }
+    }
+  },
+  "blockNowConfirmDescription": {
+    "message": "Этот сайт будет полностью заблокирован до полуночи."
+  },
+  "blockNowConfirmBlock": {
+    "message": "Заблокировать"
+  },
+  "blockNowConfirmCancel": {
+    "message": "Отмена"
+  },
+  "menuDeleteAction": {
+    "message": "Удалить из списка"
+  },
+  "menuBlockAction": {
+    "message": "Заблокировать до\u00A0завтра"
+  },
   "deleteConfirmTitle": {
-    "message": "Удалить $domain$ из списка блокировок?",
+    "message": "Удалить $domain$ из списка блокировок?",
     "placeholders": {
       "domain": {
         "content": "$1"
@@ -57,7 +96,7 @@
     }
   },
   "deleteConfirmDescription": {
-    "message": "Без блокировки этот сайт снова будет на расстоянии клика."
+    "message": "Без блокировки этот сайт снова будет на расстоянии клика."
   },
   "deleteConfirmRemove": {
     "message": "Удалить"
@@ -81,7 +120,7 @@
     "message": "Ядерный режим"
   },
   "nuclearDescription": {
-    "message": "Блокирует весь список на определённое время."
+    "message": "Блокирует весь список на определённое время."
   },
   "nuclearEmpty": {
     "message": "Список блокировок пуст. Добавь сайт, чтобы разблокировать ядерный режим."
@@ -98,7 +137,7 @@
     }
   },
   "nuclearConfirmDescription": {
-    "message": "После запуска пути назад нет. Все сайты из списка станут недоступны."
+    "message": "После запуска пути назад нет. Все сайты из списка станут недоступны."
   },
   "nuclearConfirmLaunch": {
     "message": "Запуск"
@@ -134,7 +173,7 @@
     "message": "Ядерный режим"
   },
   "nuclearCountdownExpired": {
-    "message": "Время вышло. Назад к делу."
+    "message": "Время вышло. Назад к делу."
   },
   "nuclearCountdownActive": {
     "message": "Список заблокирован. Отсчёт идёт."

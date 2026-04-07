@@ -3,7 +3,6 @@ export const STORAGE_VERSION = 1;
 
 /** Known domain aliases → canonical domain */
 export const DOMAIN_ALIASES: Record<string, string> = {
-  'x.com': 'twitter.com',
   'youtu.be': 'youtube.com',
   'old.reddit.com': 'reddit.com',
   'm.facebook.com': 'facebook.com',
@@ -18,11 +17,10 @@ export const DEFAULT_PRESET_DOMAINS = [
   'reddit.com',
   'instagram.com',
   'tiktok.com',
-  'twitter.com',
 ] as const;
 
 /** Default daily limit for new sites (minutes) */
-export const DEFAULT_LIMIT_MINUTES = 10;
+export const DEFAULT_LIMIT_MINUTES = 5;
 
 /** Slider constraints (minutes) */
 export const LIMIT_MIN = 0;

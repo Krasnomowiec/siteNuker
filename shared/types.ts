@@ -51,6 +51,9 @@ export interface DomainUsage {
 
   /** Log of limit changes made today */
   limitChanges: LimitChange[];
+
+  /** ISO timestamp if user manually hard-blocked this domain (null = not manually blocked) */
+  hardBlockedAt?: string | null;
 }
 
 export interface LimitChange {

@@ -2,7 +2,7 @@
   "name": "sitesnuker",
   "description": "Browser extension to limit time on addictive websites",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "wxt -b firefox --mv3",

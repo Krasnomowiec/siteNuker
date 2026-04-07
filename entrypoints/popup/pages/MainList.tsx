@@ -1,14 +1,13 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { StorageSchema, SiteConfig, DailyUsage } from '@/shared/types';
-import { writeStorage } from '@/shared/storage';
-import { getTodayKey, getTodayUsage } from '@/shared/utils';
+import { getTodayUsage } from '@/shared/utils';
 import { t } from '@/shared/i18n';
 
 import { SiteRow } from '../components/site-row';
 import { AddSiteBar } from '../components/AddSiteBar';
 import { useActiveDomain } from '../hooks/useActiveDomain';
 import { BottomSheet } from '../components/BottomSheet';
-import { ConfirmationSheet } from '../components/ConfirmationSheet';
+import { ActionMenuSheet } from '../components/ActionMenuSheet';
 
 interface MainListProps {
   storage: StorageSchema;
@@ -20,79 +19,88 @@ function getUsedSeconds(todayUsage: DailyUsage, domain: string): number {
 
 export function MainList({ storage }: MainListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<SiteConfig | null>(null);
+  const [menuTarget, setMenuTarget] = useState<SiteConfig | null>(null);
   const todayUsage = getTodayUsage(storage.usage);
   const { liveUsage } = useActiveDomain();
 
-  async function handleSave(siteId: string, newLimit: number) {
-    const site = storage.sites.find((s) => s.id === siteId);
-    if (!site) return;
+  const handleToggleExpand = useCallback((siteId: string) => {
+    setExpandedId((prev) => (prev === siteId ? null : siteId));
+  }, []);
 
-    const updatedSites: SiteConfig[] = storage.sites.map((s) =>
-      s.id === siteId ? { ...s, dailyLimitMinutes: newLimit } : s,
-    );
-
-    const todayKey = getTodayKey();
-    const existingDay = storage.usage[todayKey] ?? {};
-    const existingDomain = existingDay[site.domain] ?? {
-      usedSeconds: 0,
-      blockedAttempts: 0,
-      limitChanges: [],
-    };
-
-    const updatedUsage = {
-      ...storage.usage,
-      [todayKey]: {
-        ...existingDay,
-        [site.domain]: {
-          ...existingDomain,
-          limitChanges: [
-            ...existingDomain.limitChanges,
-            {
-              timestamp: new Date().toISOString(),
-              from: site.dailyLimitMinutes,
-              to: newLimit,
-            },
-          ],
-        },
-      },
-    };
-
-    await writeStorage({ sites: updatedSites, usage: updatedUsage });
+  async function handleExtend(siteId: string) {
+    try {
+      await browser.runtime.sendMessage({
+        type: 'updateSiteLimit',
+        siteId,
+        direction: 'extend',
+      });
+    } catch (err) {
+      console.error('[SitesNuker] handleExtend failed:', err);
+    }
   }
 
-  function handleDeleteRequest(siteId: string) {
-    const site = storage.sites.find((s) => s.id === siteId);
-    if (site) setDeleteTarget(site);
+  async function handleReduce(siteId: string) {
+    try {
+      await browser.runtime.sendMessage({
+        type: 'updateSiteLimit',
+        siteId,
+        direction: 'reduce',
+      });
+    } catch (err) {
+      console.error('[SitesNuker] handleReduce failed:', err);
+    }
   }
 
-  async function handleDeleteConfirm() {
-    if (!deleteTarget) return;
-    const updatedSites = storage.sites.filter(
-      (site) => site.id !== deleteTarget.id,
-    );
-    await writeStorage({ sites: updatedSites });
-    setDeleteTarget(null);
-    setExpandedId(null);
+  function handleMenuRequest(siteId: string) {
+    const site = storage.sites.find((s) => s.id === siteId);
+    if (site) setMenuTarget(site);
+  }
+
+  async function handleMenuDelete() {
+    if (!menuTarget) return;
+    try {
+      await browser.runtime.sendMessage({
+        type: 'deleteSite',
+        siteId: menuTarget.id,
+      });
+      setMenuTarget(null);
+      setExpandedId(null);
+    } catch (err) {
+      console.error('[SitesNuker] handleMenuDelete failed:', err);
+    }
+  }
+
+  async function handleMenuBlockConfirm() {
+    if (!menuTarget) return;
+    try {
+      await browser.runtime.sendMessage({
+        type: 'hardBlockSite',
+        domain: menuTarget.domain,
+      });
+      setMenuTarget(null);
+      setExpandedId(null);
+    } catch (err) {
+      console.error('[SitesNuker] handleMenuBlockConfirm failed:', err);
+    }
   }
 
   async function handleAdd(domain: string, limitMinutes: number) {
-    const newSite: SiteConfig = {
-      id: crypto.randomUUID(),
-      domain,
-      dailyLimitMinutes: limitMinutes,
-      initialLimitMinutes: limitMinutes,
-      isPreset: false,
-      addedAt: new Date().toISOString(),
-    };
-    await writeStorage({ sites: [newSite, ...storage.sites] });
+    try {
+      await browser.runtime.sendMessage({
+        type: 'addSite',
+        domain,
+        limitMinutes,
+      });
+    } catch (err) {
+      console.error('[SitesNuker] handleAdd failed:', err);
+    }
   }
 
   if (storage.sites.length === 0) {
     return (
       <>
         <div className="flex-1 flex items-center justify-center px-4 py-12">
-          <p className="text-text-tertiary text-body text-center">
+          <p className="text-text-tertiary text-[0.875rem] text-center">
             {t('mainListEmpty')}
           </p>
         </div>
@@ -110,15 +118,16 @@ export function MainList({ storage }: MainListProps) {
             site={site}
             usedSeconds={
               storage.isEnabled
-                ? (liveUsage[site.domain] ?? getUsedSeconds(todayUsage, site.domain))
+                ? (liveUsage[site.domain] ??
+                    getUsedSeconds(todayUsage, site.domain))
                 : getUsedSeconds(todayUsage, site.domain)
             }
+            isManuallyBlocked={!!todayUsage[site.domain]?.hardBlockedAt}
             isExpanded={expandedId === site.id}
-            onToggleExpand={() =>
-              setExpandedId(expandedId === site.id ? null : site.id)
-            }
-            onSave={handleSave}
-            onDelete={handleDeleteRequest}
+            onToggleExpand={handleToggleExpand}
+            onExtend={handleExtend}
+            onReduce={handleReduce}
+            onMenu={handleMenuRequest}
           />
         ))}
       </div>
@@ -127,18 +136,17 @@ export function MainList({ storage }: MainListProps) {
         onAdd={handleAdd}
       />
 
+      {/* Action menu (transforms into block confirmation in-place) */}
       <BottomSheet
-        isOpen={deleteTarget !== null}
-        onClose={() => setDeleteTarget(null)}
+        isOpen={menuTarget !== null}
+        onClose={() => setMenuTarget(null)}
       >
-        {deleteTarget && (
-          <ConfirmationSheet
-            title={t('deleteConfirmTitle', deleteTarget.domain)}
-            description={t('deleteConfirmDescription')}
-            confirmLabel={t('deleteConfirmRemove')}
-            cancelLabel={t('deleteConfirmKeep')}
-            onConfirm={handleDeleteConfirm}
-            onCancel={() => setDeleteTarget(null)}
+        {menuTarget && (
+          <ActionMenuSheet
+            key={menuTarget.id}
+            domain={menuTarget.domain}
+            onDelete={handleMenuDelete}
+            onBlockConfirm={handleMenuBlockConfirm}
           />
         )}
       </BottomSheet>

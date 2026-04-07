@@ -31,7 +31,7 @@ export function NuclearSetup({ onBack, onActivate, hasSites }: NuclearSetupProps
       <div className="flex-1 flex flex-col overflow-y-auto">
         <PageHeader title={t('nuclearTitle')} onBack={onBack} />
         <div className="flex-1 flex items-center justify-center px-4 py-12">
-          <p className="text-text-tertiary text-body text-center">
+          <p className="text-text-tertiary text-[0.875rem] text-center">
             {t('nuclearEmpty')}
           </p>
         </div>
@@ -45,7 +45,7 @@ export function NuclearSetup({ onBack, onActivate, hasSites }: NuclearSetupProps
 
       {/* Description */}
       <div className="px-4 pt-2 pb-6 shrink-0">
-        <p className="text-body text-text-tertiary leading-relaxed">
+        <p className="text-[0.875rem] text-text-tertiary leading-relaxed">
           {t('nuclearDescription')}
         </p>
       </div>

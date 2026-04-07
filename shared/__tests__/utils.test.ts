@@ -98,7 +98,6 @@ describe('formatTimeCountdown', () => {
 
 describe('extractDomain', () => {
   const aliases: Record<string, string> = {
-    'x.com': 'twitter.com',
     'youtu.be': 'youtube.com',
     'old.reddit.com': 'reddit.com',
     'fb.com': 'facebook.com',
@@ -129,7 +128,6 @@ describe('extractDomain', () => {
   });
 
   it('resolves known aliases', () => {
-    expect(extractDomain('x.com', aliases)).toBe('twitter.com');
     expect(extractDomain('https://youtu.be/abc', aliases)).toBe('youtube.com');
     expect(extractDomain('fb.com', aliases)).toBe('facebook.com');
   });

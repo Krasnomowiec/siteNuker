@@ -7,7 +7,7 @@
   },
 
   "headerSiteCount": {
-    "message": "$count$/$max$ blocked",
+    "message": "$count$/$max$ sites on list",
     "placeholders": {
       "count": { "content": "$1" },
       "max": { "content": "$2" }
@@ -15,7 +15,7 @@
   },
 
   "addSitePlaceholder": {
-    "message": "URL"
+    "message": "Enter URL"
   },
   "addSiteDailyLimit": {
     "message": "Daily limit"
@@ -33,17 +33,56 @@
     }
   },
 
-  "siteRowDailyLimit": {
-    "message": "Daily limit"
-  },
-  "siteRowHoldToSave": {
-    "message": "Hold to save"
-  },
-  "siteRowLimitExhausted": {
-    "message": "Limit exhausted. Resets at midnight."
+  "siteRowUnlocksIn": {
+    "message": "Unlocks in $time$",
+    "placeholders": {
+      "time": { "content": "$1" }
+    }
   },
   "siteRowSoftBlocked": {
     "message": "Blocked"
+  },
+  "siteRowTimeUsedUp": {
+    "message": "Time's up"
+  },
+  "progressUsed": {
+    "message": "Used"
+  },
+  "progressRemaining": {
+    "message": "Remaining"
+  },
+  "progressLimit": {
+    "message": "Daily limit"
+  },
+  "extendFiveMin": {
+    "message": "+5 min"
+  },
+  "reduceFiveMin": {
+    "message": "-5 min"
+  },
+  "extendMaxReached": {
+    "message": "Max"
+  },
+  "blockNowConfirmTitle": {
+    "message": "Block $domain$ until tomorrow?",
+    "placeholders": {
+      "domain": { "content": "$1" }
+    }
+  },
+  "blockNowConfirmDescription": {
+    "message": "This site will be completely blocked until midnight."
+  },
+  "blockNowConfirmBlock": {
+    "message": "Block"
+  },
+  "blockNowConfirmCancel": {
+    "message": "Cancel"
+  },
+  "menuDeleteAction": {
+    "message": "Remove from list"
+  },
+  "menuBlockAction": {
+    "message": "Block until tomorrow"
   },
   "deleteConfirmTitle": {
     "message": "Remove $domain$ from block list?",

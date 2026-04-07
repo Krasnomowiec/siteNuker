@@ -81,7 +81,7 @@ export function NuclearCountdown({
         <h1 className="font-headline font-semibold text-header text-accent-red">
           {t('nuclearCountdownTitle')}
         </h1>
-        <p className="text-body text-text-tertiary mt-1.5 max-w-[340px] mx-auto leading-relaxed">
+        <p className="text-[0.875rem] text-text-tertiary mt-1.5 max-w-[340px] mx-auto leading-relaxed">
           {isComplete
             ? t('nuclearCountdownExpired')
             : t('nuclearCountdownActive')}

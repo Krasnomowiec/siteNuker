@@ -1,5 +1,5 @@
 import type { StorageSchema, SiteConfig } from './types';
-import { DOMAIN_ALIASES } from './constants';
+import { DOMAIN_ALIASES, HARD_CAP_SECONDS } from './constants';
 import { getTodayKey } from './utils';
 
 /**
@@ -83,6 +83,7 @@ export async function addSiteBlockRule(site: SiteConfig): Promise<void> {
       `[blocking] Failed to add site rule for ${site.domain}:`,
       error,
     );
+    throw error;
   }
 }
 
@@ -178,17 +179,21 @@ export async function reconcileRules(storage: StorageSchema): Promise<void> {
   const dayUsage = storage.usage[today] ?? {};
 
   for (const site of storage.sites) {
-    const usedSeconds = dayUsage[site.domain]?.usedSeconds ?? 0;
-    if (usedSeconds >= site.dailyLimitMinutes * 60) {
+    const du = dayUsage[site.domain];
+    const usedSeconds = du?.usedSeconds ?? 0;
+    if (usedSeconds >= site.dailyLimitMinutes * 60 || usedSeconds >= HARD_CAP_SECONDS || du?.hardBlockedAt) {
       await addSiteBlockRule(site);
     }
   }
 }
 
-/** Check if a domain is currently blocked (limit exceeded) */
+/** Check if a domain is currently blocked (limit exceeded, hard cap, or manually hard-blocked) */
 export function isDomainBlocked(
   site: SiteConfig,
   usedSeconds: number,
+  hardBlockedAt?: string | null,
 ): boolean {
+  if (hardBlockedAt) return true;
+  if (usedSeconds >= HARD_CAP_SECONDS) return true;
   return usedSeconds >= site.dailyLimitMinutes * 60;
 }

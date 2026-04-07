@@ -35,9 +35,26 @@ describe('isDomainBlocked', () => {
     expect(isDomainBlocked(site, 0)).toBe(true);
   });
 
-  it('handles large limits', () => {
+  it('handles large limits (capped by HARD_CAP_SECONDS = 3600)', () => {
     const site = makeSite({ dailyLimitMinutes: 120 });
-    expect(isDomainBlocked(site, 7199)).toBe(false);
+    // Under both limit and hard cap
+    expect(isDomainBlocked(site, 3599)).toBe(false);
+    // At hard cap — blocked even though under 120min limit
+    expect(isDomainBlocked(site, 3600)).toBe(true);
+    // Over both
     expect(isDomainBlocked(site, 7200)).toBe(true);
+  });
+
+  it('returns true when hardBlockedAt is set, regardless of usage', () => {
+    const site = makeSite({ dailyLimitMinutes: 60 });
+    expect(isDomainBlocked(site, 0, '2026-04-07T12:00:00Z')).toBe(true);
+    expect(isDomainBlocked(site, 100, '2026-04-07T12:00:00Z')).toBe(true);
+  });
+
+  it('ignores null/undefined hardBlockedAt', () => {
+    const site = makeSite({ dailyLimitMinutes: 10 });
+    expect(isDomainBlocked(site, 599, null)).toBe(false);
+    expect(isDomainBlocked(site, 599, undefined)).toBe(false);
+    expect(isDomainBlocked(site, 599)).toBe(false);
   });
 });

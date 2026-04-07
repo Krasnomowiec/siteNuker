@@ -6,7 +6,6 @@ import type { StorageSchema } from '@/shared/types';
 // Mock storage module
 vi.mock('@/shared/storage', () => ({
   readStorage: vi.fn(),
-  writeStorage: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Mock useActiveDomain hook (used by MainList)
@@ -14,8 +13,13 @@ vi.mock('../hooks/useActiveDomain', () => ({
   useActiveDomain: () => ({ activeDomain: null, liveUsage: {} }),
 }));
 
-import { readStorage, writeStorage } from '@/shared/storage';
+import { readStorage } from '@/shared/storage';
 import App from '../App';
+
+const mockSendMessage = vi.fn().mockResolvedValue({ ok: true });
+// Patch the WXT-provided browser global with our mock
+const _browser = browser as typeof browser & { runtime: { sendMessage: typeof mockSendMessage } };
+_browser.runtime.sendMessage = mockSendMessage;
 
 function makeStorage(overrides: Partial<StorageSchema> = {}): StorageSchema {
   return {
@@ -43,6 +47,7 @@ function makeSite(domain: string = 'youtube.com') {
 describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSendMessage.mockResolvedValue({ ok: true });
   });
 
   it('shows loading state initially', () => {
@@ -80,7 +85,7 @@ describe('App', () => {
       // Click toggle — should disable without confirmation
       await user.click(toggle);
 
-      expect(writeStorage).toHaveBeenCalledWith({ isEnabled: false });
+      expect(mockSendMessage).toHaveBeenCalledWith({ type: 'setEnabled', isEnabled: false });
       // Confirmation sheet should NOT appear
       expect(screen.queryByText('disableConfirmTitle')).not.toBeInTheDocument();
     });
@@ -103,8 +108,8 @@ describe('App', () => {
       expect(screen.getByText('disableConfirmTitle')).toBeInTheDocument();
       expect(screen.getByText('disableConfirmDescription')).toBeInTheDocument();
 
-      // writeStorage should NOT have been called yet
-      expect(writeStorage).not.toHaveBeenCalledWith({ isEnabled: false });
+      // sendMessage should NOT have been called yet
+      expect(mockSendMessage).not.toHaveBeenCalledWith({ type: 'setEnabled', isEnabled: false });
     });
 
     it('disables after confirming in bottom-sheet', async () => {
@@ -122,7 +127,7 @@ describe('App', () => {
 
       // Confirm disable
       await user.click(screen.getByText('disableConfirmOff'));
-      expect(writeStorage).toHaveBeenCalledWith({ isEnabled: false });
+      expect(mockSendMessage).toHaveBeenCalledWith({ type: 'setEnabled', isEnabled: false });
     });
 
     it('keeps enabled when canceling confirmation', async () => {
@@ -137,7 +142,7 @@ describe('App', () => {
       await user.click(screen.getByRole('switch'));
       await user.click(screen.getByText('disableConfirmKeep'));
 
-      expect(writeStorage).not.toHaveBeenCalledWith({ isEnabled: false });
+      expect(mockSendMessage).not.toHaveBeenCalledWith({ type: 'setEnabled', isEnabled: false });
     });
   });
 
@@ -155,7 +160,7 @@ describe('App', () => {
       expect(toggle).toHaveAttribute('aria-checked', 'false');
 
       await user.click(toggle);
-      expect(writeStorage).toHaveBeenCalledWith({ isEnabled: true });
+      expect(mockSendMessage).toHaveBeenCalledWith({ type: 'setEnabled', isEnabled: true });
     });
   });
 

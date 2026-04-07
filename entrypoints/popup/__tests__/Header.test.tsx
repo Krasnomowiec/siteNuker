@@ -5,18 +5,15 @@ import { Header } from '../components/Header';
 
 describe('Header', () => {
   const defaultProps = {
-    siteCount: 3,
     isEnabled: true,
     onToggle: vi.fn(),
     onNavigate: vi.fn(),
     currentPage: 'main' as const,
   };
 
-  it('renders title and site count', () => {
+  it('renders title', () => {
     render(<Header {...defaultProps} />);
     expect(screen.getByText('SitesNuker')).toBeInTheDocument();
-    // i18n mock returns the key; headerSiteCount is called with (3, 20)
-    expect(screen.getByText('headerSiteCount')).toBeInTheDocument();
   });
 
   it('renders toggle in ON state', () => {

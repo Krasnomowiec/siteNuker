@@ -98,6 +98,51 @@ export function AlertCircleIcon({ className, size = 18 }: IconProps) {
   );
 }
 
+export function LockIcon({ className, size = 18 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 18 18"
+      fill="none"
+      className={className}
+    >
+      <rect
+        x="4"
+        y="8"
+        width="10"
+        height="8"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.2"
+      />
+      <path
+        d="M6.5 8V6a2.5 2.5 0 0 1 5 0v2"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+      <circle cx="9" cy="12" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function MoreIcon({ className, size = 18 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 18 18"
+      fill="none"
+      className={className}
+    >
+      <circle cx="9" cy="4" r="1.25" fill="currentColor" />
+      <circle cx="9" cy="9" r="1.25" fill="currentColor" />
+      <circle cx="9" cy="14" r="1.25" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function TrashIcon({ className, size = 18 }: IconProps) {
   return (
     <svg

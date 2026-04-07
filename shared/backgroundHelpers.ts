@@ -60,9 +60,7 @@ export function createWriteLock(timeoutMs: number = 10_000): WriteLockHandle {
     const deadline = Date.now() + timeoutMs;
     while (lock) {
       if (Date.now() > deadline) {
-        console.error('[SitesNuker] Write lock timeout — forcing release');
-        lock = null;
-        break;
+        throw new Error('[SitesNuker] Write lock timeout — potential deadlock');
       }
       await lock;
     }
@@ -133,8 +131,8 @@ export function buildBlockedDomainsSet(
 ): Set<string> {
   const blocked = new Set<string>();
   for (const site of sites) {
-    const usedSeconds = dayUsage[site.domain]?.usedSeconds ?? 0;
-    if (isDomainBlocked(site, usedSeconds)) {
+    const du = dayUsage[site.domain];
+    if (isDomainBlocked(site, du?.usedSeconds ?? 0, du?.hardBlockedAt)) {
       blocked.add(site.domain);
     }
   }

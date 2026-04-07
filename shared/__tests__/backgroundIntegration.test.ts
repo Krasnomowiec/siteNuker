@@ -108,14 +108,14 @@ describe('Background integration: tracking → flush → blocking', () => {
 /* ── Integration: Domain alias resolution → site matching ── */
 
 describe('Background integration: alias resolution', () => {
-  it('resolves x.com to twitter.com for tracking', () => {
-    const sites = [makeSite('twitter.com')];
-    const hostname = extractDomain('https://x.com/home', DOMAIN_ALIASES);
-    expect(hostname).toBe('twitter.com');
+  it('resolves youtu.be to youtube.com for tracking', () => {
+    const sites = [makeSite('youtube.com')];
+    const hostname = extractDomain('https://youtu.be/abc', DOMAIN_ALIASES);
+    expect(hostname).toBe('youtube.com');
 
     const match = findMatchingSite(hostname!, sites, DOMAIN_ALIASES);
     expect(match).toBeDefined();
-    expect(match!.domain).toBe('twitter.com');
+    expect(match!.domain).toBe('youtube.com');
   });
 
   it('resolves youtu.be to youtube.com', () => {

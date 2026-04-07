@@ -1,78 +1,72 @@
 # SitesNuker
 
-Browser extension that limits your daily time on addictive websites. Set per-site limits, get blocked when time runs out, and track your progress with built-in statistics.
+Browser extension that limits your daily time on addictive websites. Set per-site limits, track usage, and block sites when limits are reached.
+
+**Firefox MV3** | React 18 | TypeScript | Tailwind CSS | WXT
 
 ## Features
 
-- **Per-site daily limits** — configure how many minutes per day you can spend on each site
-- **Hard blocking** — when your limit is up, the site is blocked via `declarativeNetRequest` (no workarounds)
-- **Nuclear mode** — block ALL tracked sites for a chosen duration (5 min – 5 hours)
-- **Usage statistics** — daily average, weekly trends, per-site breakdowns
-- **History tracking** — 30-day rolling archive of usage data
-- **Error boundary** — graceful error recovery in the popup UI
-- **Privacy policy** — bundled in `docs/` for AMO submission
-- **i18n** — English, Polish, German, Spanish, and Russian
+- **Per-site daily limits** — set 0–60 minute limits in 5-minute increments (1-hour hard cap)
+- **Automatic blocking** — sites are blocked via `declarativeNetRequest` when limits are reached
+- **Live usage tracking** — real-time countdown and progress indicators in the popup
+- **Nuclear Mode** — block all tracked sites for 5 min to 5 hours when you need to focus
+- **Statistics** — daily and 7-day weekly usage trends
+- **Hard block** — manually block a site until tomorrow, regardless of remaining time
+- **Preset sites** — YouTube, Facebook, Reddit, Instagram, TikTok with sensible defaults
+- **Custom sites** — add any domain (up to 20 sites)
+- **Localized** — English, German, Spanish, Polish, Russian
 
-## Tech Stack
+## Install
 
-- **Firefox MV3** (Manifest V3)
-- **WXT** — build framework for browser extensions
-- **React 18** + **TypeScript** (strict mode)
-- **Tailwind CSS v4** with custom design tokens
-- **Vitest** for unit tests
-- **ESLint** + **Prettier**
+Install from [Mozilla Add-ons](https://addons.mozilla.org/firefox/addon/sitesnuker/).
 
 ## Development
 
+Requires **Node.js 22+**.
+
 ```bash
-# Install dependencies
-npm install
-
-# Start dev server (Firefox)
-npm run dev
-
-# Run tests
-npm test
-
-# Type check
-npm run compile
-
-# Lint
-npm run lint
-
-# Production build
-npm run build
-
-# Create .zip for distribution
-npm run zip
+npm install          # Install dependencies
+npm run dev          # Start dev server (Firefox)
+npm run compile      # Type check
+npm run lint         # Lint
+npm test             # Run tests
+npm run build        # Production build
+npm run zip          # Create .zip for AMO submission
 ```
 
 ## Project Structure
 
 ```
-docs/
-  privacy.md           — privacy policy for AMO submission
 entrypoints/
-  background.ts        — persistent background script (timers, blocking, storage)
-  content.ts           — content script (block overlay on tracked pages)
-  blocked/             — full-page block screen
-  popup/
-    App.tsx            — popup root with page routing
-    __tests__/         — popup component tests
-    pages/             — MainList, NuclearSetup, NuclearCountdown, Statistics
-    components/        — Header, AddSiteBar, SiteRow, Slider, ErrorBoundary, stats charts
-    hooks/             — useStorage, useActiveDomain
+  background.ts        # Tracking, blocking, message handling
+  content.ts           # Block overlay on tracked pages, media pausing
+  popup/               # React popup UI
+    App.tsx             # Root component, page routing, nuclear mode
+    components/         # Site rows, charts, nuclear countdown
+    hooks/              # useStorage, useActiveDomain, useLiveUsage
+  blocked/              # Blocked page (redirect target)
 shared/
-  types.ts             — StorageSchema, SiteConfig, DomainUsage, etc.
-  constants.ts         — limits, presets, time options
-  utils.ts             — date/time formatting, domain extraction
-  blocking.ts          — declarativeNetRequest rule management
-  storage.ts           — read/write/migrate storage
-  statsComputation.ts  — statistics calculations
-  i18n.ts              — internationalization helper
-  __tests__/           — shared module tests
-public/
-  _locales/            — en, pl, de, es, ru message catalogs
-  icon/                — extension icons (16–128px)
-  rules/               — declarativeNetRequest static rules
+  blocking.ts           # declarativeNetRequest rule management
+  backgroundHelpers.ts  # Write lock, session tracking, self-write tracker
+  storage.ts            # Schema validation, migrations, read/write
+  constants.ts          # Limits, presets, domain aliases
+  types.ts              # TypeScript interfaces
+  utils.ts              # Date keys, time formatting, domain extraction
+  i18n.ts               # Localization helper
 ```
+
+## How It Works
+
+1. **Background script** tracks active tab time per domain using in-memory sessions, flushed to `browser.storage.local` every 5 seconds.
+2. When usage hits the site's limit (or the 1-hour hard cap), a **declarativeNetRequest** redirect rule blocks the domain at the browser level.
+3. A **content script** (injected at `document_start`) checks block status and displays a full-page overlay before the page renders.
+4. **Nuclear Mode** blocks all tracked sites simultaneously for a chosen duration — rules are removed when the timer expires.
+5. All popup mutations are routed through `browser.runtime.sendMessage` to the background, which serializes writes via a Promise-based mutex.
+
+## Privacy
+
+All data is stored locally — no analytics, telemetry, or external API calls. The `<all_urls>` permission is required to block any user-configured domain and inject content scripts.
+
+## License
+
+MIT

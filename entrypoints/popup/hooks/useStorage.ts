@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { StorageSchema } from '@/shared/types';
-import { readStorage, writeStorage } from '@/shared/storage';
+import { readStorage } from '@/shared/storage';
 
 export function useStorage() {
   const [storage, setStorage] = useState<StorageSchema | null>(null);
@@ -25,7 +25,11 @@ export function useStorage() {
   }, []);
 
   async function setEnabled(isEnabled: boolean): Promise<void> {
-    await writeStorage({ isEnabled });
+    try {
+      await browser.runtime.sendMessage({ type: 'setEnabled', isEnabled });
+    } catch (err) {
+      console.error('[SitesNuker] setEnabled failed:', err);
+    }
   }
 
   return { storage, loading, setEnabled };

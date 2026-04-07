@@ -28,22 +28,13 @@ export function useActiveDomain() {
 
     sync();
 
-    const intervalId = setInterval(() => {
-      if (domainsRef.current.length > 0) {
-        setLiveUsage((prev) => {
-          const next: Record<string, number> = {};
-          for (const domain of domainsRef.current) {
-            next[domain] = (prev[domain] ?? 0) + 1;
-          }
-          return next;
-        });
-      }
-    }, 1000);
+    // Poll background every second for accurate timestamp-based values.
+    // This replaces the old blind +1 increment which raced with storage syncs.
+    const intervalId = setInterval(sync, 1000);
 
+    // Immediate sync on storage changes (site added/removed, limit changed, etc.)
     const handleStorageChange = () => {
       sync();
-      // Retry after background has processed the change (race condition)
-      setTimeout(sync, 500);
     };
 
     browser.storage.onChanged.addListener(handleStorageChange);
