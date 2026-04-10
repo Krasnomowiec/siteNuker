@@ -18,9 +18,10 @@ export function ExtendCountdownSheet({
   onCancel,
 }: ExtendCountdownSheetProps) {
   const [msLeft, setMsLeft] = useState(COUNTDOWN_SECONDS * 1000);
-  const prevTime = useRef(Date.now());
+  const prevTime = useRef(0);
 
   useEffect(() => {
+    prevTime.current = Date.now();
     const interval = setInterval(() => {
       const now = Date.now();
       const elapsed = now - prevTime.current;
