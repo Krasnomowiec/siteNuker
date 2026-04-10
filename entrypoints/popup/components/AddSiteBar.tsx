@@ -23,7 +23,10 @@ export function AddSiteBar({ existingDomains, onAdd }: AddSiteBarProps) {
     browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
       if (tab?.url) {
         try {
-          let host = new URL(tab.url).hostname.replace(/^www\./, '');
+          const tabUrl = new URL(tab.url);
+          if (tabUrl.protocol !== 'http:' && tabUrl.protocol !== 'https:')
+            throw 0;
+          let host = tabUrl.hostname.replace(/^www\./, '');
           host = DOMAIN_ALIASES[host] ?? host;
           if (!existingDomains.includes(host)) {
             setDomain(host);

@@ -6,19 +6,8 @@
     "message": "Limit your time on addictive websites. Block sites when daily limits are reached."
   },
 
-  "headerSiteCount": {
-    "message": "$count$/$max$ sites on list",
-    "placeholders": {
-      "count": { "content": "$1" },
-      "max": { "content": "$2" }
-    }
-  },
-
   "addSitePlaceholder": {
     "message": "Enter URL"
-  },
-  "addSiteDailyLimit": {
-    "message": "Daily limit"
   },
   "addSiteErrorInvalid": {
     "message": "Invalid site name"
@@ -51,9 +40,6 @@
   "progressRemaining": {
     "message": "Remaining"
   },
-  "progressLimit": {
-    "message": "Daily limit"
-  },
   "extendFiveMin": {
     "message": "+5 min"
   },
@@ -84,22 +70,6 @@
   "menuBlockAction": {
     "message": "Block until tomorrow"
   },
-  "deleteConfirmTitle": {
-    "message": "Remove $domain$ from block list?",
-    "placeholders": {
-      "domain": { "content": "$1" }
-    }
-  },
-  "deleteConfirmDescription": {
-    "message": "Without the block, this site will be within reach again."
-  },
-  "deleteConfirmRemove": {
-    "message": "Remove"
-  },
-  "deleteConfirmKeep": {
-    "message": "Keep"
-  },
-
   "disableConfirmTitle": {
     "message": "Turn off SitesNuker?"
   },
@@ -227,5 +197,18 @@
 
   "mainListEmpty": {
     "message": "Empty. Block your first site."
+  },
+
+  "extendCountdownTitle": {
+    "message": "Add 5 minutes?"
+  },
+  "extendCountdownDescription": {
+    "message": "Wait a moment before adding time."
+  },
+  "extendCountdownConfirm": {
+    "message": "Add"
+  },
+  "extendCountdownCancel": {
+    "message": "Cancel"
   }
 }

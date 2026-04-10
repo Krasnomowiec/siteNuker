@@ -20,7 +20,7 @@ export const DEFAULT_PRESET_DOMAINS = [
 ] as const;
 
 /** Default daily limit for new sites (minutes) */
-export const DEFAULT_LIMIT_MINUTES = 5;
+export const DEFAULT_LIMIT_MINUTES = 10;
 
 /** Slider constraints (minutes) */
 export const LIMIT_MIN = 0;

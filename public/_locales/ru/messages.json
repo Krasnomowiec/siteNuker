@@ -5,22 +5,8 @@
   "extDescription": {
     "message": "Ограничь время на затягивающих сайтах. Блокируй сайты при превышении дневного лимита."
   },
-  "headerSiteCount": {
-    "message": "$count$/$max$ сайтов в\u00A0списке",
-    "placeholders": {
-      "count": {
-        "content": "$1"
-      },
-      "max": {
-        "content": "$2"
-      }
-    }
-  },
   "addSitePlaceholder": {
     "message": "Введите URL"
-  },
-  "addSiteDailyLimit": {
-    "message": "Дневной лимит"
   },
   "addSiteErrorInvalid": {
     "message": "Некорректное имя сайта"
@@ -54,9 +40,6 @@
   "progressRemaining": {
     "message": "Осталось"
   },
-  "progressLimit": {
-    "message": "Дневной лимит"
-  },
   "extendFiveMin": {
     "message": "+5 мин"
   },
@@ -86,23 +69,6 @@
   },
   "menuBlockAction": {
     "message": "Заблокировать до\u00A0завтра"
-  },
-  "deleteConfirmTitle": {
-    "message": "Удалить $domain$ из списка блокировок?",
-    "placeholders": {
-      "domain": {
-        "content": "$1"
-      }
-    }
-  },
-  "deleteConfirmDescription": {
-    "message": "Без блокировки этот сайт снова будет на расстоянии клика."
-  },
-  "deleteConfirmRemove": {
-    "message": "Удалить"
-  },
-  "deleteConfirmKeep": {
-    "message": "Оставить"
   },
   "disableConfirmTitle": {
     "message": "Выключить SitesNuker?"
@@ -242,5 +208,18 @@
   },
   "mainListEmpty": {
     "message": "Пусто. Заблокируй первый сайт."
+  },
+
+  "extendCountdownTitle": {
+    "message": "Добавить 5 минут?"
+  },
+  "extendCountdownDescription": {
+    "message": "Подожди немного, прежде чем добавить время."
+  },
+  "extendCountdownConfirm": {
+    "message": "Добавить"
+  },
+  "extendCountdownCancel": {
+    "message": "Отмена"
   }
 }

@@ -714,6 +714,11 @@ export default defineBackground(() => {
   }
 
   async function handleExtensionDisabled(): Promise<void> {
+    // Remove overlays before clearing state
+    for (const domain of blockedDomains) {
+      await notifyAllTabsForDomain(domain, 'removeBlockOverlay');
+    }
+
     await removeAllRules();
     blockedDomains.clear();
 
@@ -726,6 +731,10 @@ export default defineBackground(() => {
     if (!cachedStorage) return;
     await reconcileRules(cachedStorage);
     rebuildBlockedDomainsSet();
+    // Notify content scripts about currently blocked domains
+    for (const domain of blockedDomains) {
+      await notifyAllTabsForDomain(domain, 'showBlockOverlay');
+    }
     await scanAllTabs();
   }
 
@@ -819,18 +828,20 @@ export default defineBackground(() => {
       cachedStorage = { ...cachedStorage, sites: updatedSites, usage };
 
       // Unblock if limit was increased and site is currently blocked
-      if (direction === 'extend' && blockedDomains.has(site.domain)) {
+      if (direction === 'extend' && blockedDomains.has(site.domain) && cachedStorage.isEnabled) {
         const used = getUsedSeconds(site.domain);
         if (used < newLimit * 60 && used < HARD_CAP_SECONDS) {
           const updatedSite = { ...site, dailyLimitMinutes: newLimit };
           await removeSiteBlockRule(updatedSite);
           blockedDomains.delete(site.domain);
           await notifyAllTabsForDomain(site.domain, 'removeBlockOverlay');
+          // Restart tracking for tabs still open on this domain
+          await scanAllTabs();
         }
       }
 
       // Block if limit was reduced and usage now exceeds new limit
-      if (direction === 'reduce' && !blockedDomains.has(site.domain)) {
+      if (direction === 'reduce' && !blockedDomains.has(site.domain) && cachedStorage.isEnabled) {
         const used = getUsedSeconds(site.domain);
         if (used >= newLimit * 60) {
           const updatedSite = { ...site, dailyLimitMinutes: newLimit };
@@ -840,6 +851,7 @@ export default defineBackground(() => {
             return { ok: true }; // Storage updated but rule failed
           }
           blockedDomains.add(site.domain);
+          await flushDomainUsageInner(site.domain, used);
           await notifyAllTabsForDomain(site.domain, 'showBlockOverlay');
 
           const session = trackedSessions.get(site.domain);
@@ -948,6 +960,13 @@ export default defineBackground(() => {
       selfWrites.mark();
       await writeStorage({ isEnabled });
       cachedStorage = { ...cachedStorage, isEnabled };
+
+      if (isEnabled) {
+        await handleExtensionEnabled();
+      } else {
+        await handleExtensionDisabled();
+      }
+
       return { ok: true };
     });
   }

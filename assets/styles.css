@@ -153,22 +153,6 @@ html, body {
 ::-webkit-scrollbar-track { background: var(--color-bg-primary); }
 ::-webkit-scrollbar-thumb { background: var(--color-bg-elevated); border-radius: 10px; }
 
-/* Custom slider thumb */
-.sn-slider-thumb {
-  box-shadow: 0 0 8px rgba(254, 85, 74, 0.4);
-  transition: transform 150ms ease, box-shadow 150ms ease;
-}
-
-.sn-slider-track:not([aria-disabled='true']):hover .sn-slider-thumb {
-  transform: translate(-50%, -50%) scale(1.25);
-  box-shadow: 0 0 12px rgba(254, 85, 74, 0.6);
-}
-
-.sn-slider-track:not([aria-disabled='true']):active .sn-slider-thumb {
-  transform: translate(-50%, -50%) scale(1.35);
-  box-shadow: 0 0 16px rgba(254, 85, 74, 0.7);
-}
-
 /* Bottom sheet animations */
 @keyframes fade-in {
   from { opacity: 0; }

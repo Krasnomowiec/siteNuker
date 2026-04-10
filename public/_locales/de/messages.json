@@ -5,22 +5,8 @@
   "extDescription": {
     "message": "Begrenze deine Zeit auf süchtig machenden Websites. Sperre Seiten nach Erreichen des Tageslimits."
   },
-  "headerSiteCount": {
-    "message": "$count$/$max$ Seiten auf der Liste",
-    "placeholders": {
-      "count": {
-        "content": "$1"
-      },
-      "max": {
-        "content": "$2"
-      }
-    }
-  },
   "addSitePlaceholder": {
     "message": "URL eingeben"
-  },
-  "addSiteDailyLimit": {
-    "message": "Tageslimit"
   },
   "addSiteErrorInvalid": {
     "message": "Ungültiger Seitenname"
@@ -54,9 +40,6 @@
   "progressRemaining": {
     "message": "Verbleibend"
   },
-  "progressLimit": {
-    "message": "Tageslimit"
-  },
   "extendFiveMin": {
     "message": "+5 Min"
   },
@@ -86,23 +69,6 @@
   },
   "menuBlockAction": {
     "message": "Bis morgen sperren"
-  },
-  "deleteConfirmTitle": {
-    "message": "$domain$ von der Sperrliste entfernen?",
-    "placeholders": {
-      "domain": {
-        "content": "$1"
-      }
-    }
-  },
-  "deleteConfirmDescription": {
-    "message": "Ohne Sperre ist diese Seite wieder in Reichweite."
-  },
-  "deleteConfirmRemove": {
-    "message": "Entfernen"
-  },
-  "deleteConfirmKeep": {
-    "message": "Behalten"
   },
   "disableConfirmTitle": {
     "message": "SitesNuker ausschalten?"
@@ -242,5 +208,18 @@
   },
   "mainListEmpty": {
     "message": "Leer. Sperre deine erste Seite."
+  },
+
+  "extendCountdownTitle": {
+    "message": "5 Minuten hinzufügen?"
+  },
+  "extendCountdownDescription": {
+    "message": "Warte einen Moment, bevor du Zeit hinzufügst."
+  },
+  "extendCountdownConfirm": {
+    "message": "Hinzufügen"
+  },
+  "extendCountdownCancel": {
+    "message": "Abbrechen"
   }
 }

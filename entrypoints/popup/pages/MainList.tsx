@@ -8,6 +8,7 @@ import { AddSiteBar } from '../components/AddSiteBar';
 import { useActiveDomain } from '../hooks/useActiveDomain';
 import { BottomSheet } from '../components/BottomSheet';
 import { ActionMenuSheet } from '../components/ActionMenuSheet';
+import { ExtendCountdownSheet } from '../components/ExtendCountdownSheet';
 
 interface MainListProps {
   storage: StorageSchema;
@@ -20,6 +21,7 @@ function getUsedSeconds(todayUsage: DailyUsage, domain: string): number {
 export function MainList({ storage }: MainListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [menuTarget, setMenuTarget] = useState<SiteConfig | null>(null);
+  const [extendTarget, setExtendTarget] = useState<string | null>(null);
   const todayUsage = getTodayUsage(storage.usage);
   const { liveUsage } = useActiveDomain();
 
@@ -27,16 +29,22 @@ export function MainList({ storage }: MainListProps) {
     setExpandedId((prev) => (prev === siteId ? null : siteId));
   }, []);
 
-  async function handleExtend(siteId: string) {
+  function handleExtend(siteId: string) {
+    setExtendTarget(siteId);
+  }
+
+  async function handleExtendConfirm() {
+    if (!extendTarget) return;
     try {
       await browser.runtime.sendMessage({
         type: 'updateSiteLimit',
-        siteId,
+        siteId: extendTarget,
         direction: 'extend',
       });
     } catch (err) {
       console.error('[SitesNuker] handleExtend failed:', err);
     }
+    setExtendTarget(null);
   }
 
   async function handleReduce(siteId: string) {
@@ -149,6 +157,17 @@ export function MainList({ storage }: MainListProps) {
             onBlockConfirm={handleMenuBlockConfirm}
           />
         )}
+      </BottomSheet>
+
+      {/* Extend countdown */}
+      <BottomSheet
+        isOpen={extendTarget !== null}
+        onClose={() => setExtendTarget(null)}
+      >
+        <ExtendCountdownSheet
+          onConfirm={handleExtendConfirm}
+          onCancel={() => setExtendTarget(null)}
+        />
       </BottomSheet>
     </>
   );

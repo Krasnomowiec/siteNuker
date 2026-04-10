@@ -8,12 +8,15 @@ Browser extension that limits your daily time on addictive websites. Set per-sit
 
 - **Per-site daily limits** — set 0–60 minute limits in 5-minute increments (1-hour hard cap)
 - **Automatic blocking** — sites are blocked via `declarativeNetRequest` when limits are reached
+- **Extend countdown** — adding time requires a 20-second cooldown to discourage impulsive extensions
 - **Live usage tracking** — real-time countdown and progress indicators in the popup
 - **Nuclear Mode** — block all tracked sites for 5 min to 5 hours when you need to focus
-- **Statistics** — daily and 7-day weekly usage trends
+- **Statistics** — daily and 7-day weekly usage trends with color-coded progress bars
 - **Hard block** — manually block a site until tomorrow, regardless of remaining time
-- **Preset sites** — YouTube, Facebook, Reddit, Instagram, TikTok with sensible defaults
+- **Domain aliases** — youtu.be, old.reddit.com, m.facebook.com etc. map to their canonical domains
+- **Preset sites** — YouTube, Facebook, Reddit, Instagram, TikTok (10-minute defaults)
 - **Custom sites** — add any domain (up to 20 sites)
+- **Letter favicons** — privacy-first site icons with no external API calls
 - **Localized** — English, German, Spanish, Polish, Russian
 
 ## Install
@@ -42,8 +45,8 @@ entrypoints/
   content.ts           # Block overlay on tracked pages, media pausing
   popup/               # React popup UI
     App.tsx             # Root component, page routing, nuclear mode
-    components/         # Site rows, charts, nuclear countdown
-    hooks/              # useStorage, useActiveDomain, useLiveUsage
+    components/         # Site rows, charts, bottom sheets, nuclear countdown
+    hooks/              # useStorage, useActiveDomain
   blocked/              # Blocked page (redirect target)
 shared/
   blocking.ts           # declarativeNetRequest rule management
@@ -51,6 +54,8 @@ shared/
   storage.ts            # Schema validation, migrations, read/write
   constants.ts          # Limits, presets, domain aliases
   types.ts              # TypeScript interfaces
+  statsComputation.ts   # Weekly trends, north star metric
+  blockedPageTheme.ts   # Shared styles for blocked page overlay
   utils.ts              # Date keys, time formatting, domain extraction
   i18n.ts               # Localization helper
 ```
