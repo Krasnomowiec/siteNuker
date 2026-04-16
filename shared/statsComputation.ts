@@ -185,7 +185,7 @@ function computeWeeklyTrend(
 
   const days: DayPoint[] = currentWeekKeys.map((dateKey, i) => ({
     dateKey,
-    dayLabel: t(DAY_LABEL_KEYS[i] ?? ''),
+    dayLabel: t(DAY_LABEL_KEYS[i]!),
     totalMinutes: sumDayMinutes(getUsageForDate(dateKey, usage, history)),
     isToday: dateKey === todayKey,
     isFuture: i > todayIndex && todayIndex >= 0,
@@ -241,7 +241,7 @@ function computeWeeklyTrend(
 function computeNetLimitDrift(sites: SiteConfig[]): number {
   let drift = 0;
   for (const site of sites) {
-    drift += site.dailyLimitMinutes - site.initialLimitMinutes;
+    drift += site.dailyLimitMinutes - site.baseLimitMinutes;
   }
   return drift;
 }

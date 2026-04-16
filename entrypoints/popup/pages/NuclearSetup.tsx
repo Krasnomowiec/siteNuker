@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NUCLEAR_TIME_OPTIONS } from '@/shared/constants';
-import { t } from '@/shared/i18n';
+import { t, type MessageKey } from '@/shared/i18n';
 import { PageHeader } from '../components/PageHeader';
 import { BottomSheet } from '../components/BottomSheet';
 import { ConfirmationSheet } from '../components/ConfirmationSheet';
@@ -11,7 +11,7 @@ interface NuclearSetupProps {
   hasSites: boolean;
 }
 
-const TIME_LABEL_KEYS: Record<number, string> = {
+const TIME_LABEL_KEYS: Record<number, MessageKey> = {
   5: 'nuclearTimeLabel5',
   15: 'nuclearTimeLabel15',
   30: 'nuclearTimeLabel30',
@@ -72,7 +72,7 @@ export function NuclearSetup({ onBack, onActivate, hasSites }: NuclearSetupProps
               ${selected === minutes ? 'text-accent-red-soft' : 'text-text-tertiary'}
             `}
             >
-              {t(TIME_LABEL_KEYS[minutes] ?? '')}
+              {t(TIME_LABEL_KEYS[minutes]!)}
             </span>
             <span
               className={`

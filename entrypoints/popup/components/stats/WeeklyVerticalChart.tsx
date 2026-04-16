@@ -62,7 +62,7 @@ export function WeeklyVerticalChart({ trend }: WeeklyVerticalChartProps) {
                 width={BAR_WIDTH}
                 height={2}
                 rx={1}
-                fill="#2a2a2e"
+                fill="var(--color-bg-tertiary)"
               />
             );
           }
@@ -77,7 +77,7 @@ export function WeeklyVerticalChart({ trend }: WeeklyVerticalChartProps) {
                 width={BAR_WIDTH}
                 height={barH > 0 ? barH : 2}
                 rx={1}
-                fill="rgba(254,85,74,0.5)"
+                fill="color-mix(in srgb, var(--color-accent-red) 50%, transparent)"
               />
               {showLabel && (
                 <text
@@ -85,9 +85,9 @@ export function WeeklyVerticalChart({ trend }: WeeklyVerticalChartProps) {
                   y={barY - 4}
                   textAnchor="middle"
                   fontSize="10"
-                  fontFamily="var(--font-family-headline)"
+                  fontFamily="'Space Grotesk', 'Inter', sans-serif"
                   fontWeight="600"
-                  fill="#aa8985"
+                  fill="var(--color-text-tertiary)"
                 >
                   {formatMinutesShort(day.totalMinutes)}
                 </text>

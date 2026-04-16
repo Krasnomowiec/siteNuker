@@ -7,7 +7,7 @@ function makeSite(overrides: Partial<SiteConfig> = {}): SiteConfig {
     id: 'test-id',
     domain: 'youtube.com',
     dailyLimitMinutes: 10,
-    initialLimitMinutes: 10,
+    baseLimitMinutes: 10,
     isPreset: true,
     addedAt: new Date().toISOString(),
     ...overrides,

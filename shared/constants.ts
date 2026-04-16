@@ -1,5 +1,5 @@
 /** Current storage schema version */
-export const STORAGE_VERSION = 1;
+export const STORAGE_VERSION = 2;
 
 /** Known domain aliases → canonical domain */
 export const DOMAIN_ALIASES: Record<string, string> = {

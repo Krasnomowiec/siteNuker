@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ActiveState {
   activeDomain: string | null;
@@ -8,7 +8,8 @@ interface ActiveState {
 async function fetchActiveState(): Promise<ActiveState> {
   try {
     return await browser.runtime.sendMessage({ type: 'getActiveState' });
-  } catch {
+  } catch (err) {
+    console.error('[SitesNuker] fetchActiveState failed:', err);
     return { activeDomain: null, trackedUsage: {} };
   }
 }
@@ -16,12 +17,9 @@ async function fetchActiveState(): Promise<ActiveState> {
 export function useActiveDomain() {
   const [activeDomain, setActiveDomain] = useState<string | null>(null);
   const [liveUsage, setLiveUsage] = useState<Record<string, number>>({});
-  const domainsRef = useRef<string[]>([]);
-
   useEffect(() => {
     async function sync() {
       const state = await fetchActiveState();
-      domainsRef.current = Object.keys(state.trackedUsage);
       setActiveDomain(state.activeDomain);
       setLiveUsage(state.trackedUsage);
     }
@@ -32,16 +30,8 @@ export function useActiveDomain() {
     // This replaces the old blind +1 increment which raced with storage syncs.
     const intervalId = setInterval(sync, 1000);
 
-    // Immediate sync on storage changes (site added/removed, limit changed, etc.)
-    const handleStorageChange = () => {
-      sync();
-    };
-
-    browser.storage.onChanged.addListener(handleStorageChange);
-
     return () => {
       clearInterval(intervalId);
-      browser.storage.onChanged.removeListener(handleStorageChange);
     };
   }, []);
 

@@ -49,7 +49,7 @@ export function formatTimeCountdown(totalSeconds: number): string {
 }
 
 /** Domain regex for validation */
-export const DOMAIN_REGEX =
+const DOMAIN_REGEX =
   /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/i;
 
 /** Extract and validate a domain from user input (full URL or bare domain). */
@@ -100,6 +100,22 @@ export function findMatchingSite<T extends { domain: string }>(
 
   // Suffix match: "music.youtube.com" ends with ".youtube.com"
   return sites.find((s) => normalized.endsWith('.' + s.domain));
+}
+
+/** Seconds remaining until midnight (local time) */
+export function getSecondsUntilMidnight(): number {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  return Math.max(0, Math.floor((midnight.getTime() - now.getTime()) / 1000));
+}
+
+/** Format seconds to "HH:MM:SS" countdown (for unlock timers) */
+export function formatCountdown(totalSeconds: number): string {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
 /** Short format for chart labels: "42m", "1h 42m" */

@@ -15,7 +15,7 @@ function getDefaultStorage(): StorageSchema {
       id: crypto.randomUUID(),
       domain,
       dailyLimitMinutes: DEFAULT_LIMIT_MINUTES,
-      initialLimitMinutes: DEFAULT_LIMIT_MINUTES,
+      baseLimitMinutes: DEFAULT_LIMIT_MINUTES,
       isPreset: true,
       addedAt: new Date(Date.now() + index).toISOString(),
     })),
@@ -59,8 +59,13 @@ const migrations: Record<
   number,
   (data: Record<string, unknown>) => void
 > = {
-  // Example for future use:
-  // 2: (data) => { data.newField = 'default'; },
+  2: (data) => {
+    const sites = data.sites as Array<Record<string, unknown>>;
+    for (const site of sites) {
+      site.baseLimitMinutes = site.initialLimitMinutes ?? site.baseLimitMinutes ?? 10;
+      delete site.initialLimitMinutes;
+    }
+  },
 };
 
 /** Apply all pending migrations from data.version → STORAGE_VERSION */

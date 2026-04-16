@@ -12,12 +12,17 @@ export function useStorage() {
         setStorage(data);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('[SitesNuker] useStorage init failed:', err);
         setLoading(false);
       });
 
     const handleChange = () => {
-      readStorage().then(setStorage).catch(() => {});
+      readStorage()
+        .then(setStorage)
+        .catch((err) => {
+          console.error('[SitesNuker] useStorage sync failed:', err);
+        });
     };
 
     browser.storage.onChanged.addListener(handleChange);

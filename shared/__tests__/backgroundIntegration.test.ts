@@ -22,7 +22,7 @@ function makeSite(
     id: crypto.randomUUID(),
     domain,
     dailyLimitMinutes,
-    initialLimitMinutes: dailyLimitMinutes,
+    baseLimitMinutes: dailyLimitMinutes,
     isPreset: false,
     addedAt: new Date().toISOString(),
   };

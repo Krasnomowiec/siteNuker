@@ -70,6 +70,21 @@
   "menuBlockAction": {
     "message": "Bloquear hasta mañana"
   },
+  "menuBaseLimitAction": {
+    "message": "Límite diario"
+  },
+  "baseLimitTitle": {
+    "message": "Límite diario"
+  },
+  "baseLimitUnit": {
+    "message": "min"
+  },
+  "baseLimitSave": {
+    "message": "Guardar"
+  },
+  "baseLimitCancel": {
+    "message": "Cancelar"
+  },
   "disableConfirmTitle": {
     "message": "¿Desactivar SitesNuker?"
   },
@@ -208,6 +223,15 @@
   },
   "mainListEmpty": {
     "message": "Vacío. Bloquea tu primer sitio."
+  },
+  "baseLimitConfirmTitle": {
+    "message": "¿Cambiar límite diario a $limit$ min?",
+    "placeholders": {
+      "limit": { "content": "$1" }
+    }
+  },
+  "baseLimitConfirmDescription": {
+    "message": "Espera un momento para confirmar el cambio."
   },
 
   "extendCountdownTitle": {

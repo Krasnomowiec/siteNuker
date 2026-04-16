@@ -70,6 +70,21 @@
   "menuBlockAction": {
     "message": "Zablokuj do\u00A0jutra"
   },
+  "menuBaseLimitAction": {
+    "message": "Limit dzienny"
+  },
+  "baseLimitTitle": {
+    "message": "Limit dzienny"
+  },
+  "baseLimitUnit": {
+    "message": "min"
+  },
+  "baseLimitSave": {
+    "message": "Zapisz"
+  },
+  "baseLimitCancel": {
+    "message": "Anuluj"
+  },
   "disableConfirmTitle": {
     "message": "Wyłączyć SitesNuker?"
   },
@@ -197,6 +212,15 @@
 
   "mainListEmpty": {
     "message": "Pusto. Zablokuj pierwszą stronę."
+  },
+  "baseLimitConfirmTitle": {
+    "message": "Zmienić limit dzienny na $limit$ min?",
+    "placeholders": {
+      "limit": { "content": "$1" }
+    }
+  },
+  "baseLimitConfirmDescription": {
+    "message": "Poczekaj, żeby potwierdzić zmianę."
   },
 
   "extendCountdownTitle": {

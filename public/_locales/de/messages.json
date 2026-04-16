@@ -70,6 +70,21 @@
   "menuBlockAction": {
     "message": "Bis morgen sperren"
   },
+  "menuBaseLimitAction": {
+    "message": "Tageslimit"
+  },
+  "baseLimitTitle": {
+    "message": "Tageslimit"
+  },
+  "baseLimitUnit": {
+    "message": "min"
+  },
+  "baseLimitSave": {
+    "message": "Speichern"
+  },
+  "baseLimitCancel": {
+    "message": "Abbrechen"
+  },
   "disableConfirmTitle": {
     "message": "SitesNuker ausschalten?"
   },
@@ -208,6 +223,15 @@
   },
   "mainListEmpty": {
     "message": "Leer. Sperre deine erste Seite."
+  },
+  "baseLimitConfirmTitle": {
+    "message": "Tageslimit auf $limit$ Min ändern?",
+    "placeholders": {
+      "limit": { "content": "$1" }
+    }
+  },
+  "baseLimitConfirmDescription": {
+    "message": "Warte einen Moment, um die Änderung zu bestätigen."
   },
 
   "extendCountdownTitle": {

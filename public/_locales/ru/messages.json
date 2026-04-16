@@ -70,6 +70,21 @@
   "menuBlockAction": {
     "message": "Заблокировать до\u00A0завтра"
   },
+  "menuBaseLimitAction": {
+    "message": "Дневной лимит"
+  },
+  "baseLimitTitle": {
+    "message": "Дневной лимит"
+  },
+  "baseLimitUnit": {
+    "message": "min"
+  },
+  "baseLimitSave": {
+    "message": "Сохранить"
+  },
+  "baseLimitCancel": {
+    "message": "Отмена"
+  },
   "disableConfirmTitle": {
     "message": "Выключить SitesNuker?"
   },
@@ -208,6 +223,15 @@
   },
   "mainListEmpty": {
     "message": "Пусто. Заблокируй первый сайт."
+  },
+  "baseLimitConfirmTitle": {
+    "message": "Изменить дневной лимит на $limit$ мин?",
+    "placeholders": {
+      "limit": { "content": "$1" }
+    }
+  },
+  "baseLimitConfirmDescription": {
+    "message": "Подождите, чтобы подтвердить изменение."
   },
 
   "extendCountdownTitle": {

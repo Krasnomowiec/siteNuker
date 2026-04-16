@@ -29,8 +29,8 @@ export interface SiteConfig {
   /** Current daily limit in minutes (0–60, step 5) */
   dailyLimitMinutes: number;
 
-  /** Limit set when first added (for badge calculation) */
-  initialLimitMinutes: number;
+  /** Base daily limit restored at midnight (0–60, step 5) */
+  baseLimitMinutes: number;
 
   /** Was this a default preset site */
   isPreset: boolean;

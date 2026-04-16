@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { NuclearModeState } from '@/shared/types';
 import { formatTimeCountdown } from '@/shared/utils';
 import { t } from '@/shared/i18n';
@@ -21,13 +21,13 @@ export function NuclearCountdown({
   nuclearMode,
   onComplete,
 }: NuclearCountdownProps) {
+  const expiresAtMs = useMemo(
+    () => new Date(nuclearMode.expiresAt).getTime(),
+    [nuclearMode.expiresAt],
+  );
+
   const [remainingSeconds, setRemainingSeconds] = useState(() =>
-    Math.max(
-      0,
-      Math.ceil(
-        (new Date(nuclearMode.expiresAt).getTime() - Date.now()) / 1000,
-      ),
-    ),
+    Math.max(0, Math.ceil((expiresAtMs - Date.now()) / 1000)),
   );
   const [completionPhase, setCompletionPhase] = useState<
     'none' | 'bloom' | 'settle'
@@ -41,9 +41,7 @@ export function NuclearCountdown({
     const interval = setInterval(() => {
       const remaining = Math.max(
         0,
-        Math.ceil(
-          (new Date(nuclearMode.expiresAt).getTime() - Date.now()) / 1000,
-        ),
+        Math.ceil((expiresAtMs - Date.now()) / 1000),
       );
       setRemainingSeconds(remaining);
 
@@ -53,7 +51,7 @@ export function NuclearCountdown({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [nuclearMode.expiresAt]);
+  }, [expiresAtMs]);
 
   // Completion sequence: bloom → settle → onComplete
   useEffect(() => {
@@ -95,7 +93,7 @@ export function NuclearCountdown({
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] rounded-full pointer-events-none"
           style={{
             background:
-              'radial-gradient(circle, rgba(254,85,74,0.06) 0%, transparent 60%)',
+              'radial-gradient(circle, color-mix(in srgb, var(--color-accent-red) 6%, transparent) 0%, transparent 60%)',
           }}
         />
 

@@ -6,8 +6,10 @@ import { t } from '@/shared/i18n';
 import { SiteRow } from '../components/site-row';
 import { AddSiteBar } from '../components/AddSiteBar';
 import { useActiveDomain } from '../hooks/useActiveDomain';
-import { BottomSheet } from '../components/BottomSheet';
+import { BottomSheet, AnimatedBackdrop } from '../components/BottomSheet';
 import { ActionMenuSheet } from '../components/ActionMenuSheet';
+import { ConfirmationSheet } from '../components/ConfirmationSheet';
+import { BaseLimitSheet } from '../components/BaseLimitSheet';
 import { ExtendCountdownSheet } from '../components/ExtendCountdownSheet';
 
 interface MainListProps {
@@ -21,17 +23,27 @@ function getUsedSeconds(todayUsage: DailyUsage, domain: string): number {
 export function MainList({ storage }: MainListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [menuTarget, setMenuTarget] = useState<SiteConfig | null>(null);
+  const [blockTarget, setBlockTarget] = useState<SiteConfig | null>(null);
+  const [baseLimitTarget, setBaseLimitTarget] = useState<SiteConfig | null>(
+    null,
+  );
   const [extendTarget, setExtendTarget] = useState<string | null>(null);
   const todayUsage = getTodayUsage(storage.usage);
   const { liveUsage } = useActiveDomain();
+
+  const anySheetOpen =
+    menuTarget !== null ||
+    blockTarget !== null ||
+    baseLimitTarget !== null ||
+    extendTarget !== null;
 
   const handleToggleExpand = useCallback((siteId: string) => {
     setExpandedId((prev) => (prev === siteId ? null : siteId));
   }, []);
 
-  function handleExtend(siteId: string) {
+  const handleExtend = useCallback((siteId: string) => {
     setExtendTarget(siteId);
-  }
+  }, []);
 
   async function handleExtendConfirm() {
     if (!extendTarget) return;
@@ -47,7 +59,7 @@ export function MainList({ storage }: MainListProps) {
     setExtendTarget(null);
   }
 
-  async function handleReduce(siteId: string) {
+  const handleReduce = useCallback(async (siteId: string) => {
     try {
       await browser.runtime.sendMessage({
         type: 'updateSiteLimit',
@@ -57,12 +69,15 @@ export function MainList({ storage }: MainListProps) {
     } catch (err) {
       console.error('[SitesNuker] handleReduce failed:', err);
     }
-  }
+  }, []);
 
-  function handleMenuRequest(siteId: string) {
-    const site = storage.sites.find((s) => s.id === siteId);
-    if (site) setMenuTarget(site);
-  }
+  const handleMenuRequest = useCallback(
+    (siteId: string) => {
+      const site = storage.sites.find((s) => s.id === siteId);
+      if (site) setMenuTarget(site);
+    },
+    [storage.sites],
+  );
 
   async function handleMenuDelete() {
     if (!menuTarget) return;
@@ -78,17 +93,31 @@ export function MainList({ storage }: MainListProps) {
     }
   }
 
-  async function handleMenuBlockConfirm() {
-    if (!menuTarget) return;
+  async function handleBaseLimitSave(newLimit: number) {
+    if (!baseLimitTarget) return;
+    try {
+      await browser.runtime.sendMessage({
+        type: 'updateBaseLimit',
+        siteId: baseLimitTarget.id,
+        baseLimitMinutes: newLimit,
+      });
+      setBaseLimitTarget(null);
+    } catch (err) {
+      console.error('[SitesNuker] handleBaseLimitSave failed:', err);
+    }
+  }
+
+  async function handleBlockConfirm() {
+    if (!blockTarget) return;
     try {
       await browser.runtime.sendMessage({
         type: 'hardBlockSite',
-        domain: menuTarget.domain,
+        domain: blockTarget.domain,
       });
-      setMenuTarget(null);
+      setBlockTarget(null);
       setExpandedId(null);
     } catch (err) {
-      console.error('[SitesNuker] handleMenuBlockConfirm failed:', err);
+      console.error('[SitesNuker] handleBlockConfirm failed:', err);
     }
   }
 
@@ -102,6 +131,13 @@ export function MainList({ storage }: MainListProps) {
     } catch (err) {
       console.error('[SitesNuker] handleAdd failed:', err);
     }
+  }
+
+  function handleBackdropClose() {
+    if (menuTarget) setMenuTarget(null);
+    else if (blockTarget) setBlockTarget(null);
+    else if (baseLimitTarget) setBaseLimitTarget(null);
+    else if (extendTarget) setExtendTarget(null);
   }
 
   if (storage.sites.length === 0) {
@@ -144,17 +180,65 @@ export function MainList({ storage }: MainListProps) {
         onAdd={handleAdd}
       />
 
-      {/* Action menu (transforms into block confirmation in-place) */}
+      {/* Shared backdrop — stays visible during sheet-to-sheet transitions */}
+      <AnimatedBackdrop isVisible={anySheetOpen} onClick={handleBackdropClose} />
+
+      {/* Action menu */}
       <BottomSheet
         isOpen={menuTarget !== null}
         onClose={() => setMenuTarget(null)}
+        hideBackdrop
       >
         {menuTarget && (
           <ActionMenuSheet
             key={menuTarget.id}
             domain={menuTarget.domain}
+            baseLimitMinutes={menuTarget.baseLimitMinutes}
             onDelete={handleMenuDelete}
-            onBlockConfirm={handleMenuBlockConfirm}
+            onRequestBlock={() => {
+              const site = menuTarget;
+              setMenuTarget(null);
+              setBlockTarget(site);
+            }}
+            onRequestBaseLimit={() => {
+              const site = menuTarget;
+              setMenuTarget(null);
+              setBaseLimitTarget(site);
+            }}
+          />
+        )}
+      </BottomSheet>
+
+      {/* Block confirmation */}
+      <BottomSheet
+        isOpen={blockTarget !== null}
+        onClose={() => setBlockTarget(null)}
+        hideBackdrop
+      >
+        {blockTarget && (
+          <ConfirmationSheet
+            title={t('blockNowConfirmTitle', blockTarget.domain)}
+            description={t('blockNowConfirmDescription')}
+            confirmLabel={t('blockNowConfirmBlock')}
+            cancelLabel={t('blockNowConfirmCancel')}
+            onConfirm={handleBlockConfirm}
+            onCancel={() => setBlockTarget(null)}
+          />
+        )}
+      </BottomSheet>
+
+      {/* Base limit */}
+      <BottomSheet
+        isOpen={baseLimitTarget !== null}
+        onClose={() => setBaseLimitTarget(null)}
+        hideBackdrop
+      >
+        {baseLimitTarget && (
+          <BaseLimitSheet
+            key={baseLimitTarget.id}
+            baseLimitMinutes={baseLimitTarget.baseLimitMinutes}
+            onSave={handleBaseLimitSave}
+            onCancel={() => setBaseLimitTarget(null)}
           />
         )}
       </BottomSheet>
@@ -163,6 +247,7 @@ export function MainList({ storage }: MainListProps) {
       <BottomSheet
         isOpen={extendTarget !== null}
         onClose={() => setExtendTarget(null)}
+        hideBackdrop
       >
         <ExtendCountdownSheet
           onConfirm={handleExtendConfirm}

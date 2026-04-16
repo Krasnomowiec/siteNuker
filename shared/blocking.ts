@@ -101,6 +101,7 @@ export async function removeSiteBlockRule(site: SiteConfig): Promise<void> {
       `[blocking] Failed to remove site rule for ${site.domain}:`,
       error,
     );
+    throw error;
   }
 }
 
@@ -122,6 +123,7 @@ export async function addNuclearRules(sites: SiteConfig[]): Promise<void> {
     });
   } catch (error) {
     console.error('[blocking] Failed to add nuclear rules:', error);
+    throw error;
   }
 }
 
@@ -139,6 +141,7 @@ export async function removeNuclearRules(sites: SiteConfig[]): Promise<void> {
     });
   } catch (error) {
     console.error('[blocking] Failed to remove nuclear rules:', error);
+    throw error;
   }
 }
 
@@ -153,6 +156,7 @@ export async function removeAllRules(): Promise<void> {
     }
   } catch (error) {
     console.error('[blocking] Failed to remove all rules:', error);
+    throw error;
   }
 }
 

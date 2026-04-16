@@ -190,7 +190,7 @@ describe('createSelfWriteTracker', () => {
 describe('buildBlockedDomainsSet', () => {
   it('returns empty set when no sites exceed limits', () => {
     const sites = [
-      { id: '1', domain: 'youtube.com', dailyLimitMinutes: 10, initialLimitMinutes: 10, isPreset: true, addedAt: '' },
+      { id: '1', domain: 'youtube.com', dailyLimitMinutes: 10, baseLimitMinutes: 10, isPreset: true, addedAt: '' },
     ];
     const dayUsage = { 'youtube.com': { usedSeconds: 300, blockedAttempts: 0, limitChanges: [] } };
 
@@ -200,8 +200,8 @@ describe('buildBlockedDomainsSet', () => {
 
   it('includes domains that exceed their limit', () => {
     const sites = [
-      { id: '1', domain: 'youtube.com', dailyLimitMinutes: 10, initialLimitMinutes: 10, isPreset: true, addedAt: '' },
-      { id: '2', domain: 'reddit.com', dailyLimitMinutes: 5, initialLimitMinutes: 5, isPreset: true, addedAt: '' },
+      { id: '1', domain: 'youtube.com', dailyLimitMinutes: 10, baseLimitMinutes: 10, isPreset: true, addedAt: '' },
+      { id: '2', domain: 'reddit.com', dailyLimitMinutes: 5, baseLimitMinutes: 5, isPreset: true, addedAt: '' },
     ];
     const dayUsage: Record<string, DomainUsage> = {
       'youtube.com': { usedSeconds: 600, blockedAttempts: 0, limitChanges: [] }, // exactly at limit
@@ -215,7 +215,7 @@ describe('buildBlockedDomainsSet', () => {
 
   it('handles empty usage', () => {
     const sites = [
-      { id: '1', domain: 'youtube.com', dailyLimitMinutes: 10, initialLimitMinutes: 10, isPreset: true, addedAt: '' },
+      { id: '1', domain: 'youtube.com', dailyLimitMinutes: 10, baseLimitMinutes: 10, isPreset: true, addedAt: '' },
     ];
     const result = buildBlockedDomainsSet(sites, {});
     expect(result.size).toBe(0);
@@ -223,7 +223,7 @@ describe('buildBlockedDomainsSet', () => {
 
   it('blocks domain with 0-minute limit', () => {
     const sites = [
-      { id: '1', domain: 'youtube.com', dailyLimitMinutes: 0, initialLimitMinutes: 0, isPreset: true, addedAt: '' },
+      { id: '1', domain: 'youtube.com', dailyLimitMinutes: 0, baseLimitMinutes: 0, isPreset: true, addedAt: '' },
     ];
     const result = buildBlockedDomainsSet(sites, {});
     expect(result.has('youtube.com')).toBe(true);

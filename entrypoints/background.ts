@@ -468,6 +468,17 @@ export default defineBackground(() => {
         session.sessionStart = Date.now();
       }
 
+      // Reset dailyLimitMinutes to baseLimitMinutes for each site
+      if (cachedStorage) {
+        const updatedSites = cachedStorage.sites.map((s) => ({
+          ...s,
+          dailyLimitMinutes: s.baseLimitMinutes,
+        }));
+        selfWrites.mark();
+        await writeStorage({ sites: updatedSites });
+        cachedStorage = { ...cachedStorage, sites: updatedSites };
+      }
+
       // Remove all site block rules (new day = fresh limits)
       if (cachedStorage && !cachedStorage.nuclearMode) {
         for (const site of cachedStorage.sites) {
@@ -740,12 +751,12 @@ export default defineBackground(() => {
 
   // --- Storage change listener ---
 
-  browser.storage.onChanged.addListener(async (changes, area) => {
+  browser.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
 
     if (selfWrites.consumeIfRecent()) return;
 
-    try {
+    withWriteLock(async () => {
       const prevStorage = cachedStorage;
       cachedStorage = await readStorage();
 
@@ -775,9 +786,9 @@ export default defineBackground(() => {
 
       // Re-scan tabs in case sites were added/removed
       await scanAllTabs();
-    } catch (err) {
+    }).catch((err) => {
       console.error('[SitesNuker] storage.onChanged handler error:', err);
-    }
+    });
   });
 
   // --- Popup mutation handlers (all writes go through background's lock) ---
@@ -866,6 +877,70 @@ export default defineBackground(() => {
     });
   }
 
+  async function handleUpdateBaseLimit(
+    siteId: string,
+    newBaseLimit: number,
+  ): Promise<{ ok: boolean }> {
+    return withWriteLock(async () => {
+      if (!cachedStorage) return { ok: false };
+      const site = cachedStorage.sites.find((s) => s.id === siteId);
+      if (!site) return { ok: false };
+
+      const clamped = Math.max(LIMIT_MIN, Math.min(LIMIT_MAX, newBaseLimit));
+      if (clamped === site.baseLimitMinutes) return { ok: true };
+
+      const delta = clamped - site.baseLimitMinutes;
+      const newDailyLimit = Math.max(
+        LIMIT_MIN,
+        Math.min(LIMIT_MAX, site.dailyLimitMinutes + delta),
+      );
+
+      const updatedSites = cachedStorage.sites.map((s) =>
+        s.id === siteId
+          ? { ...s, baseLimitMinutes: clamped, dailyLimitMinutes: newDailyLimit }
+          : s,
+      );
+      selfWrites.mark();
+      await writeStorage({ sites: updatedSites });
+      cachedStorage = { ...cachedStorage, sites: updatedSites };
+
+      // Block if usage now exceeds new daily limit
+      if (cachedStorage.isEnabled && !blockedDomains.has(site.domain)) {
+        const used = getUsedSeconds(site.domain);
+        if (used >= newDailyLimit * 60) {
+          const updatedSite = { ...site, dailyLimitMinutes: newDailyLimit };
+          try {
+            await addSiteBlockRule(updatedSite);
+          } catch {
+            return { ok: true };
+          }
+          blockedDomains.add(site.domain);
+          await flushDomainUsageInner(site.domain, used);
+          await notifyAllTabsForDomain(site.domain, 'showBlockOverlay');
+          const session = trackedSessions.get(site.domain);
+          if (session) {
+            for (const tabId of session.tabIds) tabDomainMap.delete(tabId);
+            trackedSessions.delete(site.domain);
+          }
+        }
+      }
+
+      // Unblock if limit was increased and site was blocked
+      if (cachedStorage.isEnabled && blockedDomains.has(site.domain)) {
+        const used = getUsedSeconds(site.domain);
+        if (used < newDailyLimit * 60 && used < HARD_CAP_SECONDS) {
+          const updatedSite = { ...site, dailyLimitMinutes: newDailyLimit };
+          await removeSiteBlockRule(updatedSite);
+          blockedDomains.delete(site.domain);
+          await notifyAllTabsForDomain(site.domain, 'removeBlockOverlay');
+          await scanAllTabs();
+        }
+      }
+
+      return { ok: true };
+    });
+  }
+
   async function handleDeleteSite(siteId: string): Promise<{ ok: boolean }> {
     return withWriteLock(async () => {
       if (!cachedStorage) return { ok: false };
@@ -887,7 +962,7 @@ export default defineBackground(() => {
         id: crypto.randomUUID(),
         domain,
         dailyLimitMinutes: limitMinutes,
-        initialLimitMinutes: limitMinutes,
+        baseLimitMinutes: limitMinutes,
         isPreset: false,
         addedAt: new Date().toISOString(),
       };
@@ -994,6 +1069,13 @@ export default defineBackground(() => {
       return handleUpdateSiteLimit(message.siteId, dir);
     }
 
+    if (message?.type === 'updateBaseLimit') {
+      if (!isTrustedSender) return Promise.resolve({ ok: false });
+      if (typeof message.siteId !== 'string') return Promise.resolve({ ok: false });
+      if (typeof message.baseLimitMinutes !== 'number') return Promise.resolve({ ok: false });
+      return handleUpdateBaseLimit(message.siteId, message.baseLimitMinutes);
+    }
+
     if (message?.type === 'deleteSite') {
       if (!isTrustedSender) return Promise.resolve({ ok: false });
       if (typeof message.siteId !== 'string') return Promise.resolve({ ok: false });
@@ -1042,6 +1124,7 @@ export default defineBackground(() => {
     }
 
     if (message?.type === 'recordBlockedAttempt' && sender?.tab?.url) {
+      if (!isTrustedSender) return Promise.resolve({ ok: false });
       const hostname = extractDomain(sender.tab.url, DOMAIN_ALIASES);
       const matchedSite =
         hostname && cachedStorage
@@ -1058,6 +1141,7 @@ export default defineBackground(() => {
     }
 
     if (message?.type === 'isCurrentSiteBlocked' && sender?.tab?.url) {
+      if (!isTrustedSender) return Promise.resolve({ blocked: false });
       const tabUrl = sender.tab.url;
       return initReady.then(() => {
         const hostname = extractDomain(tabUrl, DOMAIN_ALIASES);

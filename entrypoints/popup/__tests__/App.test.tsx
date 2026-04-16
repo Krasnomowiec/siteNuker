@@ -38,7 +38,7 @@ function makeSite(domain: string = 'youtube.com') {
     id: crypto.randomUUID(),
     domain,
     dailyLimitMinutes: 10,
-    initialLimitMinutes: 10,
+    baseLimitMinutes: 10,
     isPreset: true,
     addedAt: new Date().toISOString(),
   };
